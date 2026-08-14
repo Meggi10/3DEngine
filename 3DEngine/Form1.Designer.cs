@@ -1,4 +1,4 @@
-﻿namespace _3DEngine
+﻿namespace Diablo3DEngine
 {
     partial class Form1
     {
@@ -33,7 +33,7 @@
             this.button2 = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
             this.checkBox1 = new System.Windows.Forms.CheckBox();
-            this.tglView1 = new _3DEngine.TGLView();
+            this.tglView1 = new Diablo3DEngine.TGLView();
             this.panel1.SuspendLayout();
             this.SuspendLayout();
             // 

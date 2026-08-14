@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace _3DEngine
+namespace Diablo3DEngine
 {
     internal static class Program
     {

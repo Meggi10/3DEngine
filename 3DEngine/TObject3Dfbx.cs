@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TGL;
 
-namespace _3DEngine
+namespace Diablo3DEngine
 {
     public class TObject3Dfbx : TObject3D
     {
@@ -20,6 +20,8 @@ namespace _3DEngine
         Dictionary<long, object> Connections = new Dictionary<long, object>();
         List<Vector2> TexVertices;
         string RefInf;
+        public static long TicksPerSecond = 46186158000;
+
         public class TNode
         {
             public string Name;
@@ -114,13 +116,68 @@ namespace _3DEngine
             node.SubNodes.Add("Material", ReadMaterial);
             node.SubNodes.Add("Texture", ReadTexture);
             ////node.SubNodes.Add("Pose", ReadPose);
-            //node.SubNodes.Add("Deformer", ReadDeformer);
-            //node.SubNodes.Add("AnimationStack", ReadAnimationStack);
+            node.SubNodes.Add("Deformer", ReadDeformer);
+            node.SubNodes.Add("AnimationStack", ReadAnimationStack);
             ////node.SubNodes.Add("AnimationLayer", ReadAnimationLayer);
-            //node.SubNodes.Add("AnimationCurveNode", ReadAnimationCurveNode);
-            //node.SubNodes.Add("AnimationCurve", ReadAnimationCurve);
+            node.SubNodes.Add("AnimationCurveNode", ReadAnimationCurveNode);
+            node.SubNodes.Add("AnimationCurve", ReadAnimationCurve);
             node.ReadSubNodes();
         }
+        void ReadAnimationStack(TNode node)
+        {
+            node.ID = node.ReadLong();
+            if (Animations == null)
+                Animations = new List<TAnimation>();
+            var animation = new TAnimation(this);
+            animation.Index = Animations.Count;
+            Animations.Add(animation);
+            animation.Name = node.ReadString();
+            animation.Name = animation.Name.Split('\0')[0];
+            node.Owner = animation;
+            Connections.Add(node.ID, node.Owner);
+        }
+        void ReadKey(TNode node)
+        {
+            var reader = node.ReadArray();
+            var len = (int)reader.BaseStream.Length / sizeof(long);
+            var timeVector = new TVector(len);
+            for (int i = 0; i < len; i++)
+                timeVector[i] = reader.ReadUInt64();
+            node.ReadHeader();
+            reader = node.ReadArray();
+            var valueVector = new TVector(len);
+            for (int i = 0; i < len; i++)
+                valueVector[i] = reader.ReadSingle();
+            var frameCount = (int)(30 * timeVector[timeVector.Size - 1] / TicksPerSecond + 1);
+            if (len != frameCount && len > 1)
+            {
+                valueVector = valueVector.Resample(timeVector, TVector.Uniform(frameCount));
+            }
+            Connections.Add(node.Parent.ID, valueVector);
+        }
+
+        void ReadAnimationCurve(TNode node)
+        {
+            node.ID = node.ReadLong();
+            node.SubNodes.Add("KeyTime", ReadKey);
+            //node.SubNodes.Add("KeyValueFloat", ReadKeyValue);
+            node.ReadSubNodes();
+        }
+        class TCurveNode
+        {
+            public TObject3D Model;
+            public string ModelProperty;
+            public int AnimNo;
+        }
+
+        void ReadAnimationCurveNode(TNode node)
+        {
+            node.ID = node.ReadLong();
+            node.Owner = new TCurveNode();
+            Connections.Add(node.ID, node.Owner);
+        }
+
+
         void ReadModel(TNode node)
         {
             node.ID = node.ReadLong();
@@ -347,6 +404,69 @@ namespace _3DEngine
             node.SubNodes.Add("FileName", ReadTextureFileName);
             node.ReadSubNodes();
         }
+        class TDeformer
+        {
+            public TObject3D Geometry;
+            public TDeformer Parent;
+            public List<int> Vertices = new List<int>();
+            public List<double> Weights = new List<double>();
+            public Matrix4x4 Transform = new Matrix4x4();
+        }
+
+        void ReadDeformer(TNode node)
+        {
+            node.ID = node.ReadLong();
+            node.Owner = new TDeformer();
+            Connections.Add(node.ID, node.Owner);
+            node.SubNodes.Add("Indexes", ReadIndexes);
+            node.SubNodes.Add("Weights", ReadWeights);
+            node.SubNodes.Add("Transform", ReadTransform);
+            node.ReadSubNodes();
+        }
+        void ReadIndexes(TNode node)
+        {
+            var deformer = node.Owner as TDeformer;
+            var reader = node.ReadArray();
+            var len = reader.BaseStream.Length / sizeof(int);
+            for (int i = 0; i < len; i++)
+                deformer.Vertices.Add(reader.ReadInt32());
+        }
+
+        void ReadWeights(TNode node)
+        {
+            var deformer = node.Owner as TDeformer;
+            var reader = node.ReadArray();
+            var len = reader.BaseStream.Length / sizeof(double);
+            for (int i = 0; i < len; i++)
+                deformer.Weights.Add(reader.ReadDouble());
+        }
+
+        void ReadTransform(TNode node)
+        {
+            var deformer = node.Owner as TDeformer;
+            var reader = node.ReadArray();
+            var len = reader.BaseStream.Length / sizeof(double);
+            //for (int i = 0; i < len; i++)
+            //    deformer.Transform[i] = (float)reader.ReadDouble();
+            deformer.Transform.M11 = (float)reader.ReadDouble();
+            deformer.Transform.M12 = (float)reader.ReadDouble();
+            deformer.Transform.M13 = (float)reader.ReadDouble();
+            deformer.Transform.M14 = (float)reader.ReadDouble();
+            deformer.Transform.M21 = (float)reader.ReadDouble();
+            deformer.Transform.M22 = (float)reader.ReadDouble();
+            deformer.Transform.M23 = (float)reader.ReadDouble();
+            deformer.Transform.M24 = (float)reader.ReadDouble();
+            deformer.Transform.M31 = (float)reader.ReadDouble();
+            deformer.Transform.M32 = (float)reader.ReadDouble();
+            deformer.Transform.M33 = (float)reader.ReadDouble();
+            deformer.Transform.M34 = (float)reader.ReadDouble();
+            deformer.Transform.M41 = (float)reader.ReadDouble();
+            deformer.Transform.M42 = (float)reader.ReadDouble();
+            deformer.Transform.M43 = (float)reader.ReadDouble();
+            deformer.Transform.M44 = (float)reader.ReadDouble();
+        }
+
+
         void ReadConnections(TNode node)
         {
             node.SubNodes.Add("C", ReadConnection);
@@ -390,6 +510,110 @@ namespace _3DEngine
                 //if (srcObj.Parent != null)
                 //    srcObj = srcObj.Copy();
                 srcObj.Parent = dstObj;
+            }
+            else if (dst is TAnimation)
+            {
+                if (src is TCurveNode)
+                {
+                    var srcObj = src as TCurveNode;
+                    var dstObj = dst as TAnimation;
+                    srcObj.AnimNo = Animations.IndexOf(dstObj);
+                }
+                else
+                    Connections.Add(srcIdx, dst); // AnimationLayerID bound to TAnimation
+            }
+            else if (src is TCurveNode && dst is TObject3D)
+            {
+                var srcObj = src as TCurveNode;
+                var dstObj = dst as TObject3D;
+                srcObj.Model = dstObj;
+                srcObj.ModelProperty = node.ReadString();
+                if (dstObj.Animations == null)
+                {
+                    dstObj.Animations = new List<TAnimation>();
+                    for (int i = 0; i < Animations.Count; i++)
+                        dstObj.Animations.Add(new TAnimation(dstObj));
+                }
+            }
+            else if (src is TVector && dst is TCurveNode)
+            {
+                var srcObj = src as TVector;
+                var dstObj = dst as TCurveNode;
+                if (dstObj.Model == null)
+                    return;
+                var property = node.ReadString();
+                var anim = dstObj.Model.Animations[dstObj.AnimNo];
+                if (anim.Keys.Count < srcObj.Size)
+                {
+                    for (int i = anim.Keys.Count; i < srcObj.Size; i++)
+                    {
+                        var key = new TKeyFrame();
+                        key.Bone.Scale = dstObj.Model.Scale;
+                        key.Bone.Rotation = dstObj.Model.Rotation;
+                        key.Bone.Origin = dstObj.Model.Origin;
+                        anim.Keys.Add(key);
+                    }
+                    var mainAnim = Animations[dstObj.AnimNo];
+                    if (anim.Keys.Count > mainAnim.Keys.Count)
+                        for (int i = mainAnim.Keys.Count; i < anim.Keys.Count; i++)
+                        {
+                            var key = new TKeyFrame();
+                            key.Bone = this;
+                            mainAnim.Keys.Add(key);
+                        }
+                }
+                for (int i = 0; i < srcObj.Size; i++)
+                {
+                    var bone = anim.Keys[i].Bone;
+                    if (property == "d|X" && dstObj.ModelProperty == "Lcl Translation")
+                        bone.Origin = new Vector3(srcObj[i], bone.Origin.Y, bone.Origin.Z);
+                    else if (property == "d|Y" && dstObj.ModelProperty == "Lcl Translation")
+                        bone.Origin = new Vector3(bone.Origin.X, srcObj[i], bone.Origin.Z);
+                    else if (property == "d|Z" && dstObj.ModelProperty == "Lcl Translation")
+                        bone.Origin = new Vector3(bone.Origin.X, bone.Origin.Y, srcObj[i]);
+                    else if (property == "d|X" && dstObj.ModelProperty == "Lcl Rotation")
+                        bone.Rotation.X = srcObj[i];
+                    else if (property == "d|Y" && dstObj.ModelProperty == "Lcl Rotation")
+                        bone.Rotation.Y = srcObj[i];
+                    else if (property == "d|Z" && dstObj.ModelProperty == "Lcl Rotation")
+                        bone.Rotation.Z = srcObj[i];
+                    else if (property == "d|X" && dstObj.ModelProperty == "Lcl Scaling")
+                        bone.Scale = new Vector3(srcObj[i], bone.Scale.Y, bone.Scale.Z);
+                    else if (property == "d|Y" && dstObj.ModelProperty == "Lcl Scaling")
+                        bone.Scale = new Vector3(bone.Scale.X, srcObj[i], bone.Scale.Z);
+                    else if (property == "d|Z" && dstObj.ModelProperty == "Lcl Scaling")
+                        bone.Scale = new Vector3(bone.Scale.X, srcObj[i], bone.Scale.Z);
+                }
+            }
+
+            else if (src is TDeformer && dst is TDeformer)
+            {
+                var srcObj = src as TDeformer;
+                var dstObj = dst as TDeformer;
+                srcObj.Parent = dstObj;
+            }
+            else if (src is TDeformer && dst is TObject3D)
+            {
+                var srcObj = src as TDeformer;
+                var dstObj = dst as TObject3D;
+                srcObj.Geometry = dstObj;
+            }
+            else if (src is TObject3D && dst is TDeformer)
+            {
+                var srcObj = src as TObject3D;
+                var dstObj = dst as TDeformer;
+                if (dstObj.Parent != null)
+                {
+                    var mesh = dstObj.Parent.Geometry;
+                    mesh.Bones.Add(srcObj);
+                    srcObj.BindPoseInv = dstObj.Transform;
+                    for (int i = 0; i < dstObj.Vertices.Count; i++)
+                    {
+                        var v = mesh.Vertices[dstObj.Vertices[i]];
+                        v.Bones.Add(srcObj);
+                        v.Weights.Add((float)dstObj.Weights[i]);
+                    }
+                }
             }
         }
         void ReadTextureFileName(TNode node)

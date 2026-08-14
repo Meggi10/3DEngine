@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace _3DEngine
+namespace Diablo3DEngine
 {
     public class TMaterial
     {

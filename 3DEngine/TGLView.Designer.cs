@@ -1,4 +1,4 @@
-﻿namespace _3DEngine
+﻿namespace Diablo3DEngine
 {
     partial class TGLView
     {

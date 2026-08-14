@@ -10,11 +10,12 @@ using System.Text;
 using System.Threading.Tasks;
 using TGL;
 
-namespace _3DEngine
+namespace Diablo3DEngine
 {
     [Serializable]
     public class TObject3D
     {
+        public List<TAnimation> Animations;
         public List<TVertex> Vertices = new List<TVertex>();
         public List<TFace> Faces = new List<TFace>();
         public List<TMaterial> Materials = new List<TMaterial>();
@@ -70,6 +71,12 @@ namespace _3DEngine
             get => shear;
             set { shear = value; IsValidTransform = false; }
         }
+        Vector3 eulerAngles = new Vector3();
+        public Vector3 EulerAngles
+        {
+            get => eulerAngles;
+            set { eulerAngles = value; IsValidTransform = false; }
+        }
         Quaternion rotation = new Quaternion(0, 0, 0, 1);
         public Quaternion Rotation
         {
@@ -113,6 +120,25 @@ namespace _3DEngine
                     parent.Children.Add(this);
             }
         }
+        public void Interpolate(int animNo, int keyNo, float ratio)
+        {
+            if (Animations != null)
+            {
+                var anim = Animations[animNo];
+                if (keyNo < anim.Keys.Count)
+                {
+                    var startSkel = keyNo == 0 ? this : anim.Keys[keyNo - 1].Bone;
+                    var endSkel = anim.Keys[keyNo].Bone;
+                    Origin = startSkel.Origin + (endSkel.Origin - startSkel.Origin) * ratio;
+                    Rotation = startSkel.Rotation + (endSkel.Rotation - startSkel.Rotation) * ratio;
+                    Scale = startSkel.Scale + (endSkel.Scale - startSkel.Scale) * ratio;
+                    //Shear = startSkel.Shear + (endSkel.Shear - startSkel.Shear) * ratio;
+                }
+            }
+            for (int i = 0; i < Children.Count; i++)
+                Children[i].Interpolate(animNo, keyNo, ratio);
+        }
+
         public static TObject3D CreateCube()
         {
             var obj = new TObject3D();

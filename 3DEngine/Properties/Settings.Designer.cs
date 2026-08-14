@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace _3DEngine.Properties
+namespace Diablo3DEngine.Properties
 {
 
 

@@ -39,7 +39,7 @@ namespace TGL
         public static delegate* unmanaged[Cdecl]<int, int, int, int, int, int, int, int, uint, uint, void> BlitFramebuffer;
         public static delegate* unmanaged[Cdecl]<uint, nint, void*, uint, void> BufferData;
         public static delegate* unmanaged[Cdecl]<uint, nint, nint, void*, void> BufferSubData;
-        public static delegate* unmanaged[Cdecl]<uint, void> CompileShader;
+        private static delegate* unmanaged[Cdecl]<uint, void> glCompileShader;
         public static delegate* unmanaged[Cdecl]<uint> CreateProgram;
         public static delegate* unmanaged[Cdecl]<uint, uint> CreateShader;
         public static delegate* unmanaged[Cdecl]<uint, uint, uint, void> DispatchCompute;
@@ -64,7 +64,28 @@ namespace TGL
         public static delegate* unmanaged[Cdecl]<int, int, byte, float*, void> UniformMatrix4fv;
         public static delegate* unmanaged[Cdecl]<uint, void> UseProgram;
         public static delegate* unmanaged[Cdecl]<uint, int, uint, byte, int, void*, void> VertexAttribPointer;
-
+        public static void CompileShader(uint shader, string source)
+        {
+            int length = source.Length;
+            byte* pSourceBytes = stackalloc byte[length];
+            System.Text.Encoding.ASCII.GetBytes(source, new Span<byte>(pSourceBytes, length));
+            byte* pSourcePtr = pSourceBytes;
+            glShaderSource(shader, 1, &pSourceBytes, &length);
+            glCompileShader(shader);
+            int status;
+            GetShaderiv(shader, OpenGL.GL_COMPILE_STATUS, &status);
+            if (status == 0)
+                throw new Exception(GetShaderInfoLog(shader));
+        }
+        private static string GetShaderInfoLog(uint shader)
+        {
+            var glGetShaderInfoLog = (delegate* unmanaged[Stdcall]<uint, int, int*, byte*, void>)Win32.GetProcAddress("glGetShaderInfoLog");
+            int logLength = 0;
+            GetShaderiv(shader, 0x8B84, &logLength); // 0x8B84 = GL_INFO_LOG_LENGTH
+            byte* pLog = stackalloc byte[logLength];
+            glGetShaderInfoLog(shader, logLength, null, pLog);
+            return Marshal.PtrToStringAnsi((IntPtr)pLog, logLength);
+        }
         private static void* GetCore(string csharpName)
         {
             return (void*)NativeLibrary.GetExport(OpenGlAsm, "gl" + csharpName);
@@ -111,7 +132,7 @@ namespace TGL
             BlitFramebuffer = (delegate* unmanaged[Cdecl]<int, int, int, int, int, int, int, int, uint, uint, void>)GetExt("BlitFramebuffer");
             BufferData = (delegate* unmanaged[Cdecl]<uint, nint, void*, uint, void>)GetExt("BufferData");
             BufferSubData = (delegate* unmanaged[Cdecl]<uint, nint, nint, void*, void>)GetExt("BufferSubData");
-            CompileShader = (delegate* unmanaged[Cdecl]<uint, void>)GetExt("CompileShader");
+            glCompileShader = (delegate* unmanaged[Cdecl]<uint, void>)GetExt("CompileShader");
             CreateProgram = (delegate* unmanaged[Cdecl]<uint>)GetExt("CreateProgram");
             CreateShader = (delegate* unmanaged[Cdecl]<uint, uint>)GetExt("CreateShader");
             DispatchCompute = (delegate* unmanaged[Cdecl]<uint, uint, uint, void>)GetExt("DispatchCompute");
@@ -138,25 +159,6 @@ namespace TGL
             VertexAttribPointer = (delegate* unmanaged[Cdecl]<uint, int, uint, byte, int, void*, void>)GetExt("VertexAttribPointer");
         }
 
-        public static void ShaderSource(uint shader, string source)
-        {
-            int length = source.Length;
-            byte* pSourceBytes = stackalloc byte[length];
-            System.Text.Encoding.ASCII.GetBytes(source, new Span<byte>(pSourceBytes, length));
-            byte* pSourcePtr = pSourceBytes;
-            glShaderSource(shader, 1, &pSourceBytes, &length);
-        }
-
-        public static string GetShaderInfoLog(uint shader)
-        {
-            var glGetShaderInfoLog = (delegate* unmanaged[Cdecl]<uint, int, int*, byte*, void>)Win32.GetProcAddress("glGetShaderInfoLog");
-            int logLength = 0;
-            GetShaderiv(shader, 0x8B84, &logLength); // 0x8B84 = GL_INFO_LOG_LENGTH
-            byte* pLog = stackalloc byte[logLength];
-            glGetShaderInfoLog(shader, logLength, null, pLog);
-            return Marshal.PtrToStringAnsi((IntPtr)pLog, logLength);
-        }
-
         //  Constants
         public const uint GL_TRIANGLES = 0x0004;
         public const uint GL_QUADS = 0x0007;
@@ -165,6 +167,7 @@ namespace TGL
         public const uint GL_ACCUM_BUFFER_BIT = 0x00000200;
         public const uint GL_STENCIL_BUFFER_BIT = 0x00000400;
         public const uint GL_COLOR_BUFFER_BIT = 0x00004000;
+        public const uint GL_CULL_FACE = 0x0B44;
         public const uint GL_DEPTH_TEST = 0x0B71;
         public const uint GL_MODELVIEW_MATRIX = 0x0BA6;
         public const uint GL_TEXTURE_1D = 0x0DE0;
@@ -200,7 +203,7 @@ namespace TGL
         public const uint GL_uint = 0x1404;
         public const uint GL_FLOAT = 0x1406;
         //   PolygonMode
-        public const uint GL_POuint = 0x1B00;
+        public const uint GL_POINT = 0x1B00;
         public const uint GL_LINE = 0x1B01;
         public const uint GL_FILL = 0x1B02;
         //   DrawBufferMode

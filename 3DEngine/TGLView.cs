@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using TGL;
 
-namespace _3DEngine
+namespace Diablo3DEngine
 {
     public partial class TGLView : UserControl
     {

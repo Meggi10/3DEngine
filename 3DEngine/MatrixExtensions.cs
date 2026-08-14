@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Numerics;
 
-namespace _3DEngine
+namespace Diablo3DEngine
 {
     public static class MatrixExtensions
     {

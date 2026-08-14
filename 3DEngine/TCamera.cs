@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TGL;
 
-namespace _3DEngine
+namespace Diablo3DEngine
 {
     public class TCamera : TObject3D
     {

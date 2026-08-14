@@ -134,5 +134,26 @@ namespace TGL
             set { Assign(this * (value/Norm)); }
         
         }
+        public static TVector Uniform(int n)
+        {
+            var result = new TVector(n);
+            for (int i = 0; i < n; i++)
+                result[i] = i;
+            return result;
+        }
+        public TVector Resample(TVector x, TVector x_)
+        {
+            var y_ = new TVector(x_.Size);
+            var y = this;
+            x_ = x_ / x_[x_.Size - 1] * x[x.Size - 1];
+            int j = 1;
+            for (int i = 0; i < x_.Size; i++)
+            {
+                while (x[j] < x_[i]) j++;
+                var ratio = (x_[i] - x[j - 1]) / (x[j] - x[j - 1]);
+                y_[i] = y[j - 1] * (1 - ratio) + y[j] * ratio;
+            }
+            return y_;
+        }
     }
 }
