@@ -466,7 +466,6 @@ namespace Diablo3DEngine
             deformer.Transform.M44 = (float)reader.ReadDouble();
         }
 
-
         void ReadConnections(TNode node)
         {
             node.SubNodes.Add("C", ReadConnection);
@@ -572,11 +571,14 @@ namespace Diablo3DEngine
                     else if (property == "d|Z" && dstObj.ModelProperty == "Lcl Translation")
                         bone.Origin = new Vector3(bone.Origin.X, bone.Origin.Y, srcObj[i]);
                     else if (property == "d|X" && dstObj.ModelProperty == "Lcl Rotation")
-                        bone.Rotation.X = srcObj[i];
+                        //bone.Rotation.X = srcObj[i];
+                        bone.EulerAngles = new Vector3(srcObj[i], bone.EulerAngles.Y, bone.EulerAngles.Z);
                     else if (property == "d|Y" && dstObj.ModelProperty == "Lcl Rotation")
-                        bone.Rotation.Y = srcObj[i];
+                        //bone.Rotation.Y = srcObj[i];
+                        bone.EulerAngles = new Vector3(bone.EulerAngles.X, srcObj[i], bone.EulerAngles.Z);
                     else if (property == "d|Z" && dstObj.ModelProperty == "Lcl Rotation")
-                        bone.Rotation.Z = srcObj[i];
+                        //bone.Rotation.Z = srcObj[i];
+                        bone.EulerAngles = new Vector3(bone.EulerAngles.X, bone.EulerAngles.Y, srcObj[i]);
                     else if (property == "d|X" && dstObj.ModelProperty == "Lcl Scaling")
                         bone.Scale = new Vector3(srcObj[i], bone.Scale.Y, bone.Scale.Z);
                     else if (property == "d|Y" && dstObj.ModelProperty == "Lcl Scaling")
