@@ -71,7 +71,7 @@ namespace Diablo3DEngine
             get => shear;
             set { shear = value; IsValidTransform = false; }
         }
-        Vector3 eulerAngles = new Vector3();
+        Vector3 eulerAngles = new Vector3(0, 0, 0);
         public Vector3 EulerAngles
         {
             get => eulerAngles;
@@ -204,13 +204,17 @@ namespace Diablo3DEngine
         }
         public virtual void SaveToStream(Stream s)
         {
+            #pragma warning disable SYSLIB0011
             var bf = new BinaryFormatter();
             bf.Serialize(s, this);
+            #pragma warning restore SYSLIB0011
         }
         public virtual TObject3D LoadFromStream(Stream s)
         {
+            #pragma warning disable SYSLIB0011
             var bf = new BinaryFormatter();
             return (TObject3D)bf.Deserialize(s);
+            #pragma warning restore SYSLIB0011
         }
         public TObject3D LoadFromFile(string fileName)
         {
