@@ -19,6 +19,7 @@ namespace Diablo3DEngine
         TObject3D Selected;
         Point StartPos;
         TGLContext Context = new TGLContext();
+        public int ActAnimNo { get; set; }
         public Form1()
         {
             InitializeComponent();
@@ -50,12 +51,12 @@ namespace Diablo3DEngine
                 Selected.Rotation = rot * Selected.Rotation;
                 StartPos = e.Location;
                 tglView1.Invalidate();
-            }    
+            }
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
-            if (openFileDialog1.ShowDialog()  == DialogResult.OK)
+            if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 var cube = Scene.Root.Children[0];
                 cube.Materials[0].DiffuseMap.Path = openFileDialog1.FileName;
@@ -81,8 +82,27 @@ namespace Diablo3DEngine
 
         private void checkBox1_CheckedChanged(object sender, EventArgs e)
         {
-                Context.CullInit(checkBox1.Checked);
-                tglView1.Invalidate();
+            Context.CullInit(checkBox1.Checked);
+            tglView1.Invalidate();
+        }
+
+        private void toolStripButton1_Click(object sender, EventArgs e)
+        {
+            //...
+        }
+
+        private void toolStripButton2_Click(object sender, EventArgs e)
+        {
+            //...
+        }
+
+        private void Clock_Tick(object sender, EventArgs e)
+        {
+            var Obj = new TObject3D();   
+            if (Obj.Animations != null)
+                Obj.Animations[ActAnimNo].Animate();
+            tglView1.Invalidate();
+
         }
     }
 }
