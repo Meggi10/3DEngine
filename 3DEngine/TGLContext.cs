@@ -232,7 +232,7 @@ namespace Diablo3DEngine
                     var bone = obj.Bones[i];
                     boneMatrix[i] = Matrix4x4.Multiply(bone.WorldTransform, bone.BindPoseInv);
                 }
-                //OpenGL.BindBuffer(OpenGL.GL_UNIFORM_BUFFER, UboBones[0]);
+                //OpenGL.BindBuffer(OpenGL.GL_UNIFORM_BUFFER, UboBones); //UboBones[0] nie można używać do uInt []
                 //OpenGL.BufferDatafv(OpenGL.GL_UNIFORM_BUFFER, boneMatrix.Data, OpenGL.GL_DYNAMIC_DRAW);
                 if (boneMatrix.Length > 0)
                     fixed (float* ptr = &boneMatrix[0].M11)
