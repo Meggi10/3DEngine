@@ -123,6 +123,27 @@ namespace Diablo3DEngine
             node.SubNodes.Add("AnimationCurve", ReadAnimationCurve);
             node.ReadSubNodes();
         }
+        void CorrectRotations(TObject3D obj)
+        {
+            if (obj.Maps.Count > 0)
+            {
+                var map = obj.Maps[0];
+                if (map.Material == null)
+                    map.Material = Materials[0];
+            }
+            if (obj.Name == "PreObject")
+            {
+                var preRotation = obj.Rotation;
+                var model = obj.Parent;
+                if (model.Animations != null)
+                    foreach (var animation in model.Animations)
+                        foreach (var key in animation.Keys)
+                            key.Bone.Rotation = preRotation * key.Bone.Rotation;
+            }
+            foreach (var child in obj.Children)
+                CorrectRotations(child);
+        }
+
         void ReadAnimationStack(TNode node)
         {
             node.ID = node.ReadLong();
@@ -187,9 +208,10 @@ namespace Diablo3DEngine
             Connections.Add(node.ID, node.Owner);
             node.SubNodes.Add("Properties70", ReadProperties);
             node.ReadSubNodes();
-            //if (obj.Children.Count > 0)
-            //    CorrectPreRotation(obj, obj.Children[0].Rotation);
+            if (obj.Children.Count > 0)
+                obj.Rotation = obj.Children[0].Rotation * obj.Rotation;
         }
+
         void ReadGeometry(TNode node)
         {
             node.ID = node.ReadLong();
@@ -347,6 +369,14 @@ namespace Diablo3DEngine
             node.SubNodes.Add("P", ReadProperty);
             node.ReadSubNodes();
         }
+
+        Vector3 ReadVector(TNode node)
+        {
+            var x = (float)node.ReadDouble();
+            var y = (float)node.ReadDouble();
+            var z = (float)node.ReadDouble();
+            return new Vector3(x, y, z);
+        }
         void ReadProperty(TNode node)
         {
             var model = node.Owner as TObject3D;
@@ -359,43 +389,41 @@ namespace Diablo3DEngine
                 case "DiffuseColor":
                     {
                         var material = node.Owner as TMaterial;
-                        var r = 255 * node.ReadDouble();
-                        var g = 255 * node.ReadDouble();
-                        var b = 255 * node.ReadDouble();
-                        material.DiffuseMap.Color = Color.FromArgb((int)r, (int)g, (int)b);
+                        var color = ReadVector(node) * 255;
+                        material.DiffuseMap.Color = Color.FromArgb((int)color.X, (int)color.Y, (int)color.Z);
                         break;
                     }
-                //case "Lcl Scaling":
-                //    {F
-                //        model.Scale.X = (float)node.ReadDouble();
-                //        model.Scale.Y = (float)node.ReadDouble();
-                //        model.Scale.Z = (float)node.ReadDouble();
-                //        break;
-                //    }
-                //case "Lcl Translation":
-                //    {
-                //        model.Origin.X = (float)node.ReadDouble();
-                //        model.Origin.Y = (float)node.ReadDouble();
-                //        model.Origin.Z = (float)node.ReadDouble();
-                //        break;
-                //    }
-                //case "PreRotation":
-                //    {
-                //        var preObject = new TObject3D();
-                //        preObject.Name = "PreObject";
-                //        preObject.Parent = model;
-                //        preObject.Rotation.X = node.ReadDouble();
-                //        preObject.Rotation.Y = node.ReadDouble();
-                //        preObject.Rotation.Z = node.ReadDouble();
-                //        break;
-                //    }
-                //case "Lcl Rotation":
-                //    {
-                //        model.Rotation.X = node.ReadDouble();
-                //        model.Rotation.Y = node.ReadDouble();
-                //        model.Rotation.Z = node.ReadDouble();
-                //        break;
-                //    }
+                case "Lcl Scaling":
+                    {
+                        model.Scale = ReadVector(node);
+                        break;
+                    }
+                case "Lcl Translation":
+                    {
+                        model.Origin = ReadVector(node);
+                        break;
+                    }
+                case "PreRotation":
+                    {
+                        var preObject = new TObject3D();
+                        preObject.Name = "PreObject";
+                        preObject.Parent = model;
+                        var pitchYawRoll = ReadVector(node) * (MathF.PI / 180f);
+                        var qX = Quaternion.CreateFromAxisAngle(Vector3.UnitX, pitchYawRoll.X);
+                        var qY = Quaternion.CreateFromAxisAngle(Vector3.UnitY, pitchYawRoll.Y);
+                        var qZ = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, pitchYawRoll.Z);
+                        preObject.Rotation = qZ * qY * qX;
+                        break;
+                    }
+                case "Lcl Rotation":
+                    {
+                        var pitchYawRoll = ReadVector(node) * (MathF.PI / 180f); 
+                        var qX = Quaternion.CreateFromAxisAngle(Vector3.UnitX, pitchYawRoll.X);
+                        var qY = Quaternion.CreateFromAxisAngle(Vector3.UnitY, pitchYawRoll.Y);
+                        var qZ = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, pitchYawRoll.Z);
+                        model.Rotation = qZ * qY * qX;
+                        break;
+                    }
             }
         }
         void ReadTexture(TNode node)
@@ -645,6 +673,7 @@ namespace Diablo3DEngine
             root.SubNodes.Add("Objects", ReadObjects);
             root.SubNodes.Add("Connections", ReadConnections);
             root.ReadSubNodes();
+            CorrectRotations(this);
             return this;
         }
     }
