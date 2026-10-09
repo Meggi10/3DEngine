@@ -98,8 +98,8 @@ namespace Diablo3DEngine
                 if (!IsValidTransform)
                 {
                     transform = Matrix4x4.CreateFromQuaternion(Rotation);
-                    transform = transform.ScaleFast(Scale);
-                    transform = transform.TranslateFast(Origin);
+                    transform = transform.PreScaleFast(Scale);
+                    transform = transform.PostTranslateFast(Origin);
                     IsValidTransform = true;
                 }
                 return transform;
