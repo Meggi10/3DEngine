@@ -29,16 +29,16 @@ namespace Diablo3DEngine
                 clip.Assign(Clip);
                 if (IsPerspective)
                 {
-                    //var permute = new TAffine();
-                    //permute.Cols.Swap(2, 3);
+                    var permute = new TAffine();
+                    permute.Cols.Swap(2, 3);
                     ////proj.Mult(permute);
                     //proj = permute * proj;
                     var aspect = Clip.Scale.Y / Clip.Scale.X;
-                    //var tgHalfFovy = (float)Math.Tan(Math.PI * Fovy / 360);
-                    //clip.Scale.X = tgHalfFovy / aspect;
-                    //clip.Scale.Y = tgHalfFovy;
-                    //clip.Scale.Z = -0.5f;
-                    //clip.Origin.Z = 0.5f;
+                    var tgHalfFovy = (float)Math.Tan(Math.PI * Fovy / 360);
+                    clip.Scale.X = tgHalfFovy / aspect;
+                    clip.Scale.Y = tgHalfFovy;
+                    clip.Scale.Z = -0.5f;
+                    clip.Origin.Z = 0.5f;
                     var fovyRad = Math.PI * Fovy / 180;
                     var persp = Matrix4x4.CreatePerspectiveFieldOfView((float)fovyRad, aspect, 1, 1000);
                     proj = Matrix4x4.Multiply(proj, persp);
@@ -48,8 +48,8 @@ namespace Diablo3DEngine
                     //proj.Mult(clip.Transform.Inv);
                     //proj = (TAffine)clip.Transform.Inv() * proj;
                     //proj = Zoom.Transform * proj;
-                    proj = proj.ScaleFast(new Vector3(clip.Scale.X, clip.Scale.Y, clip.Scale.Z));
-                    proj = proj.TranslateFast(new Vector3(clip.Origin.X, clip.Origin.Y, clip.Origin.Z));
+                    proj = proj.PreScaleFast(new Vector3(clip.Scale.X, clip.Scale.Y, clip.Scale.Z));
+                    proj = proj.PostTranslateFast(new Vector3(clip.Origin.X, clip.Origin.Y, clip.Origin.Z));
                 }
                 return proj;
             }
