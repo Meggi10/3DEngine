@@ -12,18 +12,18 @@ namespace Diablo3DEngine
         /// <summary>
         /// Szybko skaluje istniejącą macierz modyfikując jej wiersze (9 mnożeń).
         /// </summary>
-        public static Matrix4x4 ScaleFast(ref this Matrix4x4 matrix, Vector3 scale)
+        public static Matrix4x4 PreScaleFast(ref this Matrix4x4 matrix, Vector3 scale)
         {
-            matrix.M11 *= scale.X; matrix.M12 *= scale.X; matrix.M13 *= scale.X;
-            matrix.M21 *= scale.Y; matrix.M22 *= scale.Y; matrix.M23 *= scale.Y;
-            matrix.M31 *= scale.Z; matrix.M32 *= scale.Z; matrix.M33 *= scale.Z;
+            matrix.M11 *= scale.X; matrix.M21 *= scale.X; matrix.M31 *= scale.X;
+            matrix.M12 *= scale.Y; matrix.M22 *= scale.Y; matrix.M32 *= scale.Y;
+            matrix.M13 *= scale.Z; matrix.M23 *= scale.Z; matrix.M33 *= scale.Z;
             return matrix;
         }
 
         /// <summary>
         /// Szybko nakłada translację bezpośrednio na czwarty wiersz macierzy.
         /// </summary>
-        public static Matrix4x4 TranslateFast(ref this Matrix4x4 matrix, Vector3 translation)
+        public static Matrix4x4 PostTranslateFast(ref this Matrix4x4 matrix, Vector3 translation)
         {
             matrix.M41 = translation.X;
             matrix.M42 = translation.Y;
