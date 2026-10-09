@@ -41,6 +41,8 @@
             button1 = new System.Windows.Forms.Button();
             tglView1 = new TGLView();
             Clock = new System.Windows.Forms.Timer(components);
+            animBox = new System.Windows.Forms.ComboBox();
+            label1 = new System.Windows.Forms.Label();
             panel1.SuspendLayout();
             toolStrip1.SuspendLayout();
             SuspendLayout();
@@ -51,6 +53,8 @@
             // 
             // panel1
             // 
+            panel1.Controls.Add(label1);
+            panel1.Controls.Add(animBox);
             panel1.Controls.Add(toolStrip1);
             panel1.Controls.Add(checkBox1);
             panel1.Controls.Add(button2);
@@ -147,6 +151,24 @@
             // 
             Clock.Tick += Clock_Tick;
             // 
+            // animBox
+            // 
+            animBox.FormattingEnabled = true;
+            animBox.Location = new System.Drawing.Point(88, 271);
+            animBox.Name = "animBox";
+            animBox.Size = new System.Drawing.Size(121, 23);
+            animBox.TabIndex = 4;
+            animBox.SelectedIndexChanged += animBox_SelectedIndexChanged;
+            // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.Location = new System.Drawing.Point(86, 246);
+            label1.Name = "label1";
+            label1.Size = new System.Drawing.Size(63, 15);
+            label1.TabIndex = 5;
+            label1.Text = "Animation";
+            // 
             // Form1
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -178,6 +200,8 @@
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripButton toolStripButton2;
         private System.Windows.Forms.Timer Clock;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.ComboBox animBox;
     }
 }
 

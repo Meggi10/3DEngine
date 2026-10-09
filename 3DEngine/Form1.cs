@@ -76,6 +76,9 @@ namespace Diablo3DEngine
                 obj.Parent = Scene.Root;
                 Selected = obj;
                 obj.Scale *= new Vector3(0.4f, 0.4f, 0.4f);
+                animBox.Items.Clear();
+                foreach (var anim in obj.Animations)
+                    animBox.Items.Add(anim.Name);
                 tglView1.Invalidate();
             }
         }
@@ -88,20 +91,24 @@ namespace Diablo3DEngine
 
         private void toolStripButton1_Click(object sender, EventArgs e)
         {
-            //...
+            Clock.Start();
         }
 
         private void toolStripButton2_Click(object sender, EventArgs e)
         {
-            //...
+            Clock.Stop();
         }
 
         private void Clock_Tick(object sender, EventArgs e)
         {
-            var Obj = new TObject3D();   
-            if (Obj.Animations != null)
-                Obj.Animations[ActAnimNo].Animate();
+            var anim = Selected.Animations[animBox.SelectedIndex];
+            anim.Animate();
             tglView1.Invalidate();
+
+        }
+
+        private void animBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
 
         }
     }
