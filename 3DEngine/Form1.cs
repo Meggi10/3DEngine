@@ -19,7 +19,6 @@ namespace Diablo3DEngine
         TObject3D Selected;
         Point StartPos;
         TGLContext Context = new TGLContext();
-        public int ActAnimNo { get; set; }
         public Form1()
         {
             InitializeComponent();
@@ -104,7 +103,6 @@ namespace Diablo3DEngine
             var anim = Selected.Animations[animBox.SelectedIndex];
             anim.Animate();
             tglView1.Invalidate();
-
         }
 
         private void animBox_SelectedIndexChanged(object sender, EventArgs e)
