@@ -180,14 +180,14 @@ namespace Diablo3DEngine
                             var weights = vertex.Weights.ToArray();
                             var bones = vertex.Bones.ToArray();
                             Array.Sort(weights, bones);
-                            //for (int k = bones.Length - 1; k >= 0; k--)
-                            //{
-                            //    var idx = bones.Length - 1 - k;
-                            //    if (idx >= MAX_BONES)
-                            //        break;
-                            //    element.Bones[idx] = obj.Bones.IndexOf(bones[k]);
-                            //    element.Weights[idx] = weights[k];
-                            //}
+                            for (int k = bones.Length - 1; k >= 0; k--)
+                            {
+                                var idx = bones.Length - 1 - k;
+                                if (idx >= MAX_BONES)
+                                    break;
+                                element.Bones[idx] = obj.Bones.IndexOf(bones[k]);
+                                element.Weights[idx] = weights[k];
+                            }
                             Marshal.StructureToPtr(element, buf + (i * 3 + j) * elSize, false);
                         }
                     }
@@ -226,17 +226,28 @@ namespace Diablo3DEngine
                 //    var bone = obj.Bones[i];
                 //    boneMatrix.Cols[i] = Matrix4x4.Multiply(bone.WorldTransform, bone.BindPoseInv);
                 //}
-                var boneMatrix = new Matrix4x4[obj.Bones.Count];
-                for (int i = 0; i < obj.Bones.Count; i++)
+                const int MAX_BONE_MATRICES = 100;
+                int boneCount = Math.Min(obj.Bones.Count, MAX_BONE_MATRICES);
+                //var boneMatrix = new Matrix4x4[obj.Bones.Count];
+                var boneMatrix = new Matrix4x4[Math.Max(boneCount, 1)];
+                boneMatrix[0] = Matrix4x4.Identity;
+                //for (int i = 0; i < obj.Bones.Count; i++)
+                //{
+                //    var bone = obj.Bones[i];
+                //    boneMatrix[i] = Matrix4x4.Multiply(bone.WorldTransform, bone.BindPoseInv);
+                //}
+                for (int i = 0; i < boneCount; i++)
                 {
                     var bone = obj.Bones[i];
-                    boneMatrix[i] = Matrix4x4.Multiply(bone.WorldTransform, bone.BindPoseInv);
+                    boneMatrix[i] = bone.BindPoseInv * bone.WorldTransform;
+                    //boneMatrix[i] = Matrix4x4.Multiply(bone.WorldTransform, bone.BindPoseInv);
                 }
-                //OpenGL.BindBuffer(OpenGL.GL_UNIFORM_BUFFER, UboBones); //UboBones[0] nie można używać do uInt []
+                OpenGL.BindBuffer(OpenGL.GL_UNIFORM_BUFFER, UboBones); //UboBones[0] nie można używać do uInt []
                 //OpenGL.BufferDatafv(OpenGL.GL_UNIFORM_BUFFER, boneMatrix.Data, OpenGL.GL_DYNAMIC_DRAW);
                 if (boneMatrix.Length > 0)
                     fixed (float* ptr = &boneMatrix[0].M11)
                     {
+                        OpenGL.BufferData(OpenGL.GL_UNIFORM_BUFFER, boneMatrix.Length * sizeof(Matrix4x4), ptr, OpenGL.GL_DYNAMIC_DRAW);
                         OpenGL.UniformMatrix4fv(uniformLoc++, boneMatrix.Length, 0, ptr);
                     }
                 OpenGL.DrawArrays(OpenGL.GL_TRIANGLES, 0, 3 * map.Faces.Count);
