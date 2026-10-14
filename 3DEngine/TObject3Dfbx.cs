@@ -612,7 +612,7 @@ namespace Diablo3DEngine
                     else if (property == "d|Y" && dstObj.ModelProperty == "Lcl Scaling")
                         bone.Scale = new Vector3(bone.Scale.X, srcObj[i], bone.Scale.Z);
                     else if (property == "d|Z" && dstObj.ModelProperty == "Lcl Scaling")
-                        bone.Scale = new Vector3(bone.Scale.X, srcObj[i], bone.Scale.Z);
+                        bone.Scale = new Vector3(bone.Scale.X, bone.Scale.Y, srcObj[i]);
                 }
             }
 
