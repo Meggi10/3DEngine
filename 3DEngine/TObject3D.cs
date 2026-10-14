@@ -130,7 +130,8 @@ namespace Diablo3DEngine
                     var startSkel = keyNo == 0 ? this : anim.Keys[keyNo - 1].Bone;
                     var endSkel = anim.Keys[keyNo].Bone;
                     Origin = startSkel.Origin + (endSkel.Origin - startSkel.Origin) * ratio;
-                    Rotation = startSkel.Rotation + (endSkel.Rotation - startSkel.Rotation) * ratio;
+                    //Rotation = startSkel.Rotation + (endSkel.Rotation - startSkel.Rotation) * ratio;
+                    Rotation = Quaternion.Slerp(startSkel.Rotation, endSkel.Rotation, ratio);
                     Scale = startSkel.Scale + (endSkel.Scale - startSkel.Scale) * ratio;
                     //Shear = startSkel.Shear + (endSkel.Shear - startSkel.Shear) * ratio;
                 }
