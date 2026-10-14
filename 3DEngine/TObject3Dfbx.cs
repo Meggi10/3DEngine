@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.IO.Compression;
@@ -125,6 +124,7 @@ namespace Diablo3DEngine
         }
         void CorrectRotations(TObject3D obj)
         {
+            //obj.Rotation = CreateQuaternionFromPitchYawRoll(obj.EulerAngles);
             if (obj.Maps.Count > 0)
             {
                 var map = obj.Maps[0];
@@ -377,6 +377,15 @@ namespace Diablo3DEngine
             var z = (float)node.ReadDouble();
             return new Vector3(x, y, z);
         }
+
+        Quaternion CreateQuaternionFromPitchYawRoll(Vector3 pitchYawRoll)
+        {
+            pitchYawRoll *= MathF.PI / 180f;
+            var qX = Quaternion.CreateFromAxisAngle(Vector3.UnitX, pitchYawRoll.X);
+            var qY = Quaternion.CreateFromAxisAngle(Vector3.UnitY, pitchYawRoll.Y);
+            var qZ = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, pitchYawRoll.Z);
+            return qZ * qY * qX;
+        }
         void ReadProperty(TNode node)
         {
             var model = node.Owner as TObject3D;
@@ -408,20 +417,14 @@ namespace Diablo3DEngine
                         var preObject = new TObject3D();
                         preObject.Name = "PreObject";
                         preObject.Parent = model;
-                        var pitchYawRoll = ReadVector(node) * (MathF.PI / 180f);
-                        var qX = Quaternion.CreateFromAxisAngle(Vector3.UnitX, pitchYawRoll.X);
-                        var qY = Quaternion.CreateFromAxisAngle(Vector3.UnitY, pitchYawRoll.Y);
-                        var qZ = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, pitchYawRoll.Z);
-                        preObject.Rotation = qZ * qY * qX;
+                        var pitchYawRoll = ReadVector(node);
+                        preObject.Rotation = CreateQuaternionFromPitchYawRoll(pitchYawRoll);
                         break;
                     }
                 case "Lcl Rotation":
                     {
-                        var pitchYawRoll = ReadVector(node) * (MathF.PI / 180f); 
-                        var qX = Quaternion.CreateFromAxisAngle(Vector3.UnitX, pitchYawRoll.X);
-                        var qY = Quaternion.CreateFromAxisAngle(Vector3.UnitY, pitchYawRoll.Y);
-                        var qZ = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, pitchYawRoll.Z);
-                        model.Rotation = qZ * qY * qX;
+                        var pitchYawRoll = ReadVector(node); 
+                        model.Rotation = CreateQuaternionFromPitchYawRoll(pitchYawRoll);
                         break;
                     }
             }
