@@ -122,24 +122,41 @@ namespace Diablo3DEngine
             node.SubNodes.Add("AnimationCurve", ReadAnimationCurve);
             node.ReadSubNodes();
         }
+        void BuildKeyRotations(TObject3D obj)
+        {
+            if (obj.Animations != null)
+            {
+                var pre = Quaternion.Identity;
+                var preObj = obj.Children.Find(c => c.Name == "PreObject");
+                if (preObj != null) pre = preObj.Rotation;
+                foreach (var animation in obj.Animations)
+                    foreach (var key in animation.Keys)
+                    {
+                        if (key.Bone == this) continue;   // klucze głównej animacji wskazują na root
+                        key.Bone.Rotation = pre * CreateQuaternionFromPitchYawRoll(key.Bone.EulerAngles);
+                    }
+            }
+            foreach (var child in obj.Children)
+                BuildKeyRotations(child);
+        }
         void CorrectRotations(TObject3D obj)
         {
-            //obj.Rotation = CreateQuaternionFromPitchYawRoll(obj.EulerAngles);
+            obj.Rotation = CreateQuaternionFromPitchYawRoll(obj.EulerAngles);
             if (obj.Maps.Count > 0)
             {
                 var map = obj.Maps[0];
                 if (map.Material == null)
                     map.Material = Materials[0];
             }
-            if (obj.Name == "PreObject")
-            {
-                var preRotation = obj.Rotation;
-                var model = obj.Parent;
-                if (model.Animations != null)
-                    foreach (var animation in model.Animations)
-                        foreach (var key in animation.Keys)
-                            key.Bone.Rotation = preRotation * key.Bone.Rotation;
-            }
+            //if (obj.Name == "PreObject")
+            //{
+            //    var preRotation = obj.Rotation;
+            //    var model = obj.Parent;
+            //    if (model.Animations != null)
+            //        foreach (var animation in model.Animations)
+            //            foreach (var key in animation.Keys)
+            //                key.Bone.Rotation = preRotation * key.Bone.Rotation;
+            //}
             foreach (var child in obj.Children)
                 CorrectRotations(child);
         }
@@ -423,7 +440,8 @@ namespace Diablo3DEngine
                     }
                 case "Lcl Rotation":
                     {
-                        var pitchYawRoll = ReadVector(node); 
+                        var pitchYawRoll = ReadVector(node);
+                        model.EulerAngles = pitchYawRoll;
                         model.Rotation = CreateQuaternionFromPitchYawRoll(pitchYawRoll);
                         break;
                     }
@@ -580,6 +598,7 @@ namespace Diablo3DEngine
                         var key = new TKeyFrame();
                         key.Bone.Scale = dstObj.Model.Scale;
                         key.Bone.Rotation = dstObj.Model.Rotation;
+                        key.Bone.EulerAngles = dstObj.Model.EulerAngles;
                         key.Bone.Origin = dstObj.Model.Origin;
                         anim.Keys.Add(key);
                     }
@@ -677,6 +696,7 @@ namespace Diablo3DEngine
             root.SubNodes.Add("Connections", ReadConnections);
             root.ReadSubNodes();
             CorrectRotations(this);
+            BuildKeyRotations(this);
             return this;
         }
     }
