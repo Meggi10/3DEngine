@@ -122,8 +122,16 @@ namespace Diablo3DEngine
             node.SubNodes.Add("AnimationCurve", ReadAnimationCurve);
             node.ReadSubNodes();
         }
-        void BuildKeyRotations(TObject3D obj)
+
+        void CorrectRotations(TObject3D obj)
         {
+            obj.Rotation = CreateQuaternionFromPitchYawRoll(obj.EulerAngles);
+            if (obj.Maps.Count > 0)
+            {
+                var map = obj.Maps[0];
+                if (map.Material == null)
+                    map.Material = Materials[0];
+            }
             if (obj.Animations != null)
             {
                 var pre = Quaternion.Identity;
@@ -137,17 +145,7 @@ namespace Diablo3DEngine
                     }
             }
             foreach (var child in obj.Children)
-                BuildKeyRotations(child);
-        }
-        void CorrectRotations(TObject3D obj)
-        {
-            obj.Rotation = CreateQuaternionFromPitchYawRoll(obj.EulerAngles);
-            if (obj.Maps.Count > 0)
-            {
-                var map = obj.Maps[0];
-                if (map.Material == null)
-                    map.Material = Materials[0];
-            }
+                CorrectRotations(child);
             //if (obj.Name == "PreObject")
             //{
             //    var preRotation = obj.Rotation;
@@ -157,8 +155,6 @@ namespace Diablo3DEngine
             //            foreach (var key in animation.Keys)
             //                key.Bone.Rotation = preRotation * key.Bone.Rotation;
             //}
-            foreach (var child in obj.Children)
-                CorrectRotations(child);
         }
 
         void ReadAnimationStack(TNode node)
@@ -696,7 +692,6 @@ namespace Diablo3DEngine
             root.SubNodes.Add("Connections", ReadConnections);
             root.ReadSubNodes();
             CorrectRotations(this);
-            BuildKeyRotations(this);
             return this;
         }
     }
