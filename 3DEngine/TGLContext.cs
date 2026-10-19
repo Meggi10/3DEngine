@@ -28,6 +28,7 @@ namespace Diablo3DEngine
         //string fragmentShaderPath = "/Shader/fragment.glsl";
         public const int MAX_LIGHTS = 10;
         public const int MAX_BONES = 4;
+        const int MAX_BONE_MATRICES = 100;
         public bool IsInited;
         uint UboCamera;
         uint UboBones;
@@ -226,7 +227,6 @@ namespace Diablo3DEngine
                 //    var bone = obj.Bones[i];
                 //    boneMatrix.Cols[i] = Matrix4x4.Multiply(bone.WorldTransform, bone.BindPoseInv);
                 //}
-                const int MAX_BONE_MATRICES = 100;
                 int boneCount = Math.Min(obj.Bones.Count, MAX_BONE_MATRICES);
                 //var boneMatrix = new Matrix4x4[obj.Bones.Count];
                 var boneMatrix = new Matrix4x4[Math.Max(boneCount, 1)];
@@ -239,8 +239,8 @@ namespace Diablo3DEngine
                 for (int i = 0; i < boneCount; i++)
                 {
                     var bone = obj.Bones[i];
-                    boneMatrix[i] = bone.BindPoseInv * bone.WorldTransform;
-                    //boneMatrix[i] = Matrix4x4.Multiply(bone.WorldTransform, bone.BindPoseInv);
+                    boneMatrix[i] = Matrix4x4.Multiply(bone.BindPoseInv, bone.WorldTransform);
+                    //boneMatrix[i] = bone.BindPoseInv * bone.WorldTransform;
                 }
                 OpenGL.BindBuffer(OpenGL.GL_UNIFORM_BUFFER, UboBones); //UboBones[0] nie można używać do uInt []
                 //OpenGL.BufferDatafv(OpenGL.GL_UNIFORM_BUFFER, boneMatrix.Data, OpenGL.GL_DYNAMIC_DRAW);
