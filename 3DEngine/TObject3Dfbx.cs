@@ -125,7 +125,7 @@ namespace Diablo3DEngine
 
         void CorrectRotations(TObject3D obj)
         {
-            obj.Rotation = CreateQuaternionFromPitchYawRoll(obj.EulerAngles);
+            //obj.Rotation = CreateQuaternionFromPitchYawRoll(obj.EulerAngles);
             if (obj.Maps.Count > 0)
             {
                 var map = obj.Maps[0];
@@ -139,10 +139,7 @@ namespace Diablo3DEngine
                 if (preObj != null) pre = preObj.Rotation;
                 foreach (var animation in obj.Animations)
                     foreach (var key in animation.Keys)
-                    {
-                        if (key.Bone == this) continue;   // klucze głównej animacji wskazują na root
                         key.Bone.Rotation = pre * CreateQuaternionFromPitchYawRoll(key.Bone.EulerAngles);
-                    }
             }
             foreach (var child in obj.Children)
                 CorrectRotations(child);
@@ -594,7 +591,7 @@ namespace Diablo3DEngine
                         var key = new TKeyFrame();
                         key.Bone.Scale = dstObj.Model.Scale;
                         key.Bone.Rotation = dstObj.Model.Rotation;
-                        key.Bone.EulerAngles = dstObj.Model.EulerAngles;
+                        //key.Bone.EulerAngles = dstObj.Model.EulerAngles;
                         key.Bone.Origin = dstObj.Model.Origin;
                         anim.Keys.Add(key);
                     }
