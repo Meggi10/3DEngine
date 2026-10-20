@@ -125,7 +125,6 @@ namespace Diablo3DEngine
 
         void CorrectRotations(TObject3D obj)
         {
-            //obj.Rotation = CreateQuaternionFromPitchYawRoll(obj.EulerAngles);
             if (obj.Maps.Count > 0)
             {
                 var map = obj.Maps[0];
@@ -143,15 +142,6 @@ namespace Diablo3DEngine
             }
             foreach (var child in obj.Children)
                 CorrectRotations(child);
-            //if (obj.Name == "PreObject")
-            //{
-            //    var preRotation = obj.Rotation;
-            //    var model = obj.Parent;
-            //    if (model.Animations != null)
-            //        foreach (var animation in model.Animations)
-            //            foreach (var key in animation.Keys)
-            //                key.Bone.Rotation = preRotation * key.Bone.Rotation;
-            //}
         }
 
         void ReadAnimationStack(TNode node)
