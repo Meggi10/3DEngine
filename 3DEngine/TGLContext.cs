@@ -24,11 +24,9 @@ namespace Diablo3DEngine
         IntPtr HDC;
         IntPtr HRC;
         public TCamera Camera = new TCamera();
-        //string vertexShaderPath = "/Shader/vertex.glsl";
-        //string fragmentShaderPath = "/Shader/fragment.glsl";
         public const int MAX_LIGHTS = 10;
         public const int MAX_BONES = 4;
-        const int MAX_BONE_MATRICES = 100;
+        const int MAX_BONE_MATRICES = 256;
         public bool IsInited;
         uint UboCamera;
         uint UboBones;
