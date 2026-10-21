@@ -14,9 +14,9 @@ namespace Diablo3DEngine
         /// </summary>
         public static Matrix4x4 PreScaleFast(ref this Matrix4x4 matrix, Vector3 scale)
         {
-            matrix.M11 *= scale.X; matrix.M21 *= scale.X; matrix.M31 *= scale.X;
-            matrix.M12 *= scale.Y; matrix.M22 *= scale.Y; matrix.M32 *= scale.Y;
-            matrix.M13 *= scale.Z; matrix.M23 *= scale.Z; matrix.M33 *= scale.Z;
+            matrix.M11 *= scale.X; matrix.M12 *= scale.X; matrix.M13 *= scale.X;
+            matrix.M21 *= scale.Y; matrix.M22 *= scale.Y; matrix.M23 *= scale.Y;
+            matrix.M31 *= scale.Z; matrix.M32 *= scale.Z; matrix.M33 *= scale.Z;
             return matrix;
         }
 
