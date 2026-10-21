@@ -8,7 +8,7 @@ layout(location = 4) in vec4 vertBones;
 layout(location = 5) in vec4 vertWeights;
 layout(location = 6) in vec2 vertUV;
 layout(location = 0) uniform mat4 worldTransform;
-const int MAX_BONES_TRANSFORMS = 256;
+const int MAX_BONES_TRANSFORMS = 1024;
 layout(std140, binding = 1) uniform Bones
 {
 	mat4 BonesTransforms[MAX_BONES_TRANSFORMS];

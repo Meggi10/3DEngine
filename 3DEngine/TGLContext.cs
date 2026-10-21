@@ -26,7 +26,7 @@ namespace Diablo3DEngine
         public TCamera Camera = new TCamera();
         public const int MAX_LIGHTS = 10;
         public const int MAX_BONES = 4;
-        const int MAX_BONE_MATRICES = 256;
+        const int MAX_BONE_MATRICES = 1024;
         public bool IsInited;
         uint UboCamera;
         uint UboBones;
