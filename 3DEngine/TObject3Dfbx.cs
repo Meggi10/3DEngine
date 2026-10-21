@@ -138,7 +138,7 @@ namespace Diablo3DEngine
                 if (preObj != null) pre = preObj.Rotation;
                 foreach (var animation in obj.Animations)
                     foreach (var key in animation.Keys)
-                        key.Bone.Rotation = pre * CreateQuaternionFromPitchYawRoll(key.Bone.EulerAngles);
+                        key.Bone.Rotation = CreateQuaternionFromPitchYawRoll(key.Bone.EulerAngles) * pre;
             }
             foreach (var child in obj.Children)
                 CorrectRotations(child);
