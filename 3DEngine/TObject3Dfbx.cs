@@ -164,17 +164,24 @@ namespace Diablo3DEngine
             var timeVector = new TVector(len);
             for (int i = 0; i < len; i++)
                 timeVector[i] = reader.ReadUInt64();
+            var ticks = timeVector[timeVector.Size - 1];
+            var frameCount = (int)(30 * ticks / TicksPerSecond + 1);
             node.ReadHeader();
             reader = node.ReadArray();
             var valueVector = new TVector(len);
             for (int i = 0; i < len; i++)
-                valueVector[i] = reader.ReadSingle();
-            var frameCount = (int)(30 * timeVector[timeVector.Size - 1] / TicksPerSecond + 1);
-            if (len != frameCount && len > 1)
             {
-                valueVector = valueVector.Resample(timeVector, TVector.Uniform(frameCount));
+                timeVector[i] *= (frameCount - 1) / ticks;
+                valueVector[i] = reader.ReadSingle();
             }
-            Connections.Add(node.Parent.ID, valueVector);
+            var curve = new TMatrix(len, 2);
+            curve.Cols[0] = timeVector;
+            curve.Cols[1] = valueVector;
+            //if (len != frameCount && len > 1)
+            //{
+            //    valueVector = valueVector.Resample(timeVector, TVector.Uniform(frameCount));
+            //}
+            Connections.Add(node.Parent.ID, curve);
         }
 
         void ReadAnimationCurve(TNode node)
@@ -222,6 +229,7 @@ namespace Diablo3DEngine
             Connections.Add(node.ID, node.Owner);
             node.SubNodes.Add("Vertices", ReadVertices);
             node.SubNodes.Add("PolygonVertexIndex", ReadFaces);
+            node.SubNodes.Add("LayerElementNormal", ReadLayerElementNormal);
             node.SubNodes.Add("LayerElementUV", ReadFaceVertices);
             node.SubNodes.Add("LayerElementMaterial", ReadLayerMaterial);
             node.ReadSubNodes();
@@ -285,6 +293,35 @@ namespace Diablo3DEngine
                 }
             }
             TexVertices.Clear();
+        }
+        void ReadLayerElementNormal(TNode node)
+        {
+            var layer = node.ReadInt();
+            var savePos = node.Reader.BaseStream.Position;
+            node.Reader.BaseStream.Position = savePos;
+            node.SubNodes.Add("Normals", ReadNormals);
+            node.SubNodes.Add("ReferenceInformationType", ReadRefInf);
+            node.ReadSubNodes();
+            //if (RefInf == "Direct")
+            //{
+            //    var model = node.Owner as TObject3D;
+            //    for (int i = 0; i < model.Vertices.Count; i++)
+            //        model.Vertices[i].Normal = ReadVector(node);
+            //}
+        }
+        void ReadNormals(TNode node)
+        {
+            var model = node.Owner as TObject3D;
+            var reader = node.ReadArray();
+            var len = reader.BaseStream.Length / 24;
+            for (int i = 0; i < len; i++)
+            {
+                var normal = new Vector3();
+                normal.X = (float)reader.ReadDouble();
+                normal.Y = (float)reader.ReadDouble();
+                normal.Z = (float)reader.ReadDouble();
+                model.Vertices[i].Normal = normal;
+            }
         }
         void ReadRefInf(TNode node)
         {
@@ -566,23 +603,28 @@ namespace Diablo3DEngine
                         dstObj.Animations.Add(new TAnimation(dstObj));
                 }
             }
-            else if (src is TVector && dst is TCurveNode)
+            else if (src is TMatrix && dst is TCurveNode)
             {
-                var srcObj = src as TVector;
+                var srcObj = src as TMatrix;
                 var dstObj = dst as TCurveNode;
                 if (dstObj.Model == null)
                     return;
+                var frames = srcObj.Cols[0];
+                var curve = srcObj.Cols[1];
                 var property = node.ReadString();
                 var anim = dstObj.Model.Animations[dstObj.AnimNo];
-                if (anim.Keys.Count < srcObj.Size)
+                if (anim.Keys.Count < srcObj.RowsCount)
                 {
-                    for (int i = anim.Keys.Count; i < srcObj.Size; i++)
+                    var currFrame = 0;
+                    for (int i = anim.Keys.Count; i < srcObj.RowsCount; i++)
                     {
                         var key = new TKeyFrame();
                         key.Bone.Scale = dstObj.Model.Scale;
                         key.Bone.Rotation = dstObj.Model.Rotation;
-                        //key.Bone.EulerAngles = dstObj.Model.EulerAngles;
+                        key.Bone.EulerAngles = dstObj.Model.EulerAngles;
                         key.Bone.Origin = dstObj.Model.Origin;
+                        key.FrameCount = (int)frames[i] - currFrame;
+                        currFrame += key.FrameCount;
                         anim.Keys.Add(key);
                     }
                     var mainAnim = Animations[dstObj.AnimNo];
@@ -594,30 +636,30 @@ namespace Diablo3DEngine
                             mainAnim.Keys.Add(key);
                         }
                 }
-                for (int i = 0; i < srcObj.Size; i++)
+                for (int i = 0; i < curve.Size; i++)
                 {
                     var bone = anim.Keys[i].Bone;
                     if (property == "d|X" && dstObj.ModelProperty == "Lcl Translation")
-                        bone.Origin = new Vector3(srcObj[i], bone.Origin.Y, bone.Origin.Z);
+                        bone.Origin = new Vector3(curve[i], bone.Origin.Y, bone.Origin.Z);
                     else if (property == "d|Y" && dstObj.ModelProperty == "Lcl Translation")
-                        bone.Origin = new Vector3(bone.Origin.X, srcObj[i], bone.Origin.Z);
+                        bone.Origin = new Vector3(bone.Origin.X, curve[i], bone.Origin.Z);
                     else if (property == "d|Z" && dstObj.ModelProperty == "Lcl Translation")
-                        bone.Origin = new Vector3(bone.Origin.X, bone.Origin.Y, srcObj[i]);
+                        bone.Origin = new Vector3(bone.Origin.X, bone.Origin.Y, curve[i]);
                     else if (property == "d|X" && dstObj.ModelProperty == "Lcl Rotation")
-                        //bone.Rotation.X = srcObj[i];
-                        bone.EulerAngles = new Vector3(srcObj[i], bone.EulerAngles.Y, bone.EulerAngles.Z);
+                        //bone.Rotation.X = curve[i];
+                        bone.EulerAngles = new Vector3(curve[i], bone.EulerAngles.Y, bone.EulerAngles.Z);
                     else if (property == "d|Y" && dstObj.ModelProperty == "Lcl Rotation")
-                        //bone.Rotation.Y = srcObj[i];
-                        bone.EulerAngles = new Vector3(bone.EulerAngles.X, srcObj[i], bone.EulerAngles.Z);
+                        //bone.Rotation.Y = curve[i];
+                        bone.EulerAngles = new Vector3(bone.EulerAngles.X, curve[i], bone.EulerAngles.Z);
                     else if (property == "d|Z" && dstObj.ModelProperty == "Lcl Rotation")
-                        //bone.Rotation.Z = srcObj[i];
-                        bone.EulerAngles = new Vector3(bone.EulerAngles.X, bone.EulerAngles.Y, srcObj[i]);
+                        //bone.Rotation.Z = curve[i];
+                        bone.EulerAngles = new Vector3(bone.EulerAngles.X, bone.EulerAngles.Y, curve[i]);
                     else if (property == "d|X" && dstObj.ModelProperty == "Lcl Scaling")
-                        bone.Scale = new Vector3(srcObj[i], bone.Scale.Y, bone.Scale.Z);
+                        bone.Scale = new Vector3(curve[i], bone.Scale.Y, bone.Scale.Z);
                     else if (property == "d|Y" && dstObj.ModelProperty == "Lcl Scaling")
-                        bone.Scale = new Vector3(bone.Scale.X, srcObj[i], bone.Scale.Z);
+                        bone.Scale = new Vector3(bone.Scale.X, curve[i], bone.Scale.Z);
                     else if (property == "d|Z" && dstObj.ModelProperty == "Lcl Scaling")
-                        bone.Scale = new Vector3(bone.Scale.X, bone.Scale.Y, srcObj[i]);
+                        bone.Scale = new Vector3(bone.Scale.X, bone.Scale.Y, curve[i]);
                 }
             }
 
