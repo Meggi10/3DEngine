@@ -32,6 +32,8 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             panel1 = new System.Windows.Forms.Panel();
+            label1 = new System.Windows.Forms.Label();
+            animBox = new System.Windows.Forms.ComboBox();
             toolStrip1 = new System.Windows.Forms.ToolStrip();
             toolStripButton1 = new System.Windows.Forms.ToolStripButton();
             toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
@@ -41,8 +43,6 @@
             button1 = new System.Windows.Forms.Button();
             tglView1 = new TGLView();
             Clock = new System.Windows.Forms.Timer(components);
-            animBox = new System.Windows.Forms.ComboBox();
-            label1 = new System.Windows.Forms.Label();
             panel1.SuspendLayout();
             toolStrip1.SuspendLayout();
             SuspendLayout();
@@ -65,6 +65,24 @@
             panel1.Name = "panel1";
             panel1.Size = new System.Drawing.Size(322, 909);
             panel1.TabIndex = 2;
+            // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.Location = new System.Drawing.Point(86, 246);
+            label1.Name = "label1";
+            label1.Size = new System.Drawing.Size(63, 15);
+            label1.TabIndex = 5;
+            label1.Text = "Animation";
+            // 
+            // animBox
+            // 
+            animBox.FormattingEnabled = true;
+            animBox.Location = new System.Drawing.Point(88, 271);
+            animBox.Name = "animBox";
+            animBox.Size = new System.Drawing.Size(121, 23);
+            animBox.TabIndex = 4;
+            animBox.SelectedIndexChanged += animBox_SelectedIndexChanged;
             // 
             // toolStrip1
             // 
@@ -149,25 +167,8 @@
             // 
             // Clock
             // 
+            Clock.Interval = 33;
             Clock.Tick += Clock_Tick;
-            // 
-            // animBox
-            // 
-            animBox.FormattingEnabled = true;
-            animBox.Location = new System.Drawing.Point(88, 271);
-            animBox.Name = "animBox";
-            animBox.Size = new System.Drawing.Size(121, 23);
-            animBox.TabIndex = 4;
-            animBox.SelectedIndexChanged += animBox_SelectedIndexChanged;
-            // 
-            // label1
-            // 
-            label1.AutoSize = true;
-            label1.Location = new System.Drawing.Point(86, 246);
-            label1.Name = "label1";
-            label1.Size = new System.Drawing.Size(63, 15);
-            label1.TabIndex = 5;
-            label1.Text = "Animation";
             // 
             // Form1
             // 

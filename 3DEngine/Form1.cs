@@ -27,7 +27,18 @@ namespace Diablo3DEngine
             cube.Parent = Scene.Root;
             tglView1.Context.Camera.Parent = Scene.Root;
             Selected = cube;
+            tglView1.MouseWheel += TglView1_MouseWheel;
         }
+
+        private void TglView1_MouseWheel(object sender, MouseEventArgs e)
+        {
+            if (e.Delta > 0)
+                Selected.Scale *= 1.1f;
+            else
+                Selected.Scale *= 0.9f;
+            tglView1.Invalidate();
+        }
+
         private void tglView1_MouseDown(object sender, MouseEventArgs e)
         {
             StartPos = e.Location;
