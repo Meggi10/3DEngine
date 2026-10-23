@@ -219,28 +219,16 @@ namespace Diablo3DEngine
                     }
                     //OpenGL.Uniform4f(uniformLoc++, map.Material.SpecularMap.Color);
                 }
-                //var boneMatrix = new TMatrix(16, obj.Bones.Count);
-                //for (int i = 0; i < obj.Bones.Count; i++)
-                //{
-                //    var bone = obj.Bones[i];
-                //    boneMatrix.Cols[i] = Matrix4x4.Multiply(bone.WorldTransform, bone.BindPoseInv);
-                //}
                 int boneCount = Math.Min(obj.Bones.Count, MAX_BONE_MATRICES);
                 //var boneMatrix = new Matrix4x4[obj.Bones.Count];
                 var boneMatrix = new Matrix4x4[Math.Max(boneCount, 1)];
                 boneMatrix[0] = Matrix4x4.Identity;
-                //for (int i = 0; i < obj.Bones.Count; i++)
-                //{
-                //    var bone = obj.Bones[i];
-                //    boneMatrix[i] = Matrix4x4.Multiply(bone.WorldTransform, bone.BindPoseInv);
-                //}
                 for (int i = 0; i < boneCount; i++)
                 {
                     var bone = obj.Bones[i];
                     boneMatrix[i] = Matrix4x4.Multiply(bone.BindPoseInv, bone.WorldTransform);
-                    //boneMatrix[i] = bone.BindPoseInv * bone.WorldTransform;
                 }
-                OpenGL.BindBuffer(OpenGL.GL_UNIFORM_BUFFER, UboBones); //UboBones[0] nie można używać do uInt []
+                OpenGL.BindBuffer(OpenGL.GL_UNIFORM_BUFFER, UboBones);
                 //OpenGL.BufferDatafv(OpenGL.GL_UNIFORM_BUFFER, boneMatrix.Data, OpenGL.GL_DYNAMIC_DRAW);
                 if (boneMatrix.Length > 0)
                     fixed (float* ptr = &boneMatrix[0].M11)
