@@ -19,7 +19,6 @@ namespace Diablo3DEngine
             matrix.M31 *= scale.Z; matrix.M32 *= scale.Z; matrix.M33 *= scale.Z;
             return matrix;
         }
-
         /// <summary>
         /// Szybko nakłada translację bezpośrednio na czwarty wiersz macierzy.
         /// </summary>
@@ -59,6 +58,4 @@ namespace Diablo3DEngine
             return vector;
         }
     }
-
-
 }
