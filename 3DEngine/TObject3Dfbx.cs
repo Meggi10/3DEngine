@@ -475,6 +475,7 @@ namespace Diablo3DEngine
         }
         class TDeformer
         {
+            public TObject3D Bone;
             public TObject3D Geometry;
             public TDeformer Parent;
             public List<int> Vertices = new List<int>();
@@ -662,7 +663,6 @@ namespace Diablo3DEngine
                         bone.Scale = new Vector3(bone.Scale.X, bone.Scale.Y, curve[i]);
                 }
             }
-
             else if (src is TDeformer && dst is TDeformer)
             {
                 var srcObj = src as TDeformer;
@@ -679,18 +679,7 @@ namespace Diablo3DEngine
             {
                 var srcObj = src as TObject3D;
                 var dstObj = dst as TDeformer;
-                if (dstObj.Parent != null)
-                {
-                    var mesh = dstObj.Parent.Geometry;
-                    mesh.Bones.Add(srcObj);
-                    srcObj.BindPoseInv = dstObj.Transform;
-                    for (int i = 0; i < dstObj.Vertices.Count; i++)
-                    {
-                        var v = mesh.Vertices[dstObj.Vertices[i]];
-                        v.Bones.Add(srcObj);
-                        v.Weights.Add((float)dstObj.Weights[i]);
-                    }
-                }
+                dstObj.Bone = srcObj;
             }
         }
         void ReadTextureFileName(TNode node)
@@ -701,6 +690,25 @@ namespace Diablo3DEngine
             //var texturePath = FilePath + Path.GetFileName(path);
             if (!Connections.ContainsKey(node.Parent.ID))
                 Connections.Add(node.Parent.ID, texturePath);
+        }
+        public void FinalizeConnections()
+        {
+            foreach (var (ID, obj) in Connections)
+            {
+                if (obj is TDeformer subDeformer && subDeformer.Bone != null)
+                {
+                    var mesh = subDeformer.Parent.Geometry;
+                    var bone = subDeformer.Bone;
+                    mesh.Bones.Add(bone);
+                    bone.BindPoseInv = subDeformer.Transform;
+                    for (int i = 0; i < subDeformer.Vertices.Count; i++)
+                    {
+                        var v = mesh.Vertices[subDeformer.Vertices[i]];
+                        v.Bones.Add(bone);
+                        v.Weights.Add((float)subDeformer.Weights[i]);
+                    }
+                }
+            }
         }
         public override TObject3D LoadFromStream(Stream s)
         {
@@ -720,6 +728,7 @@ namespace Diablo3DEngine
             root.SubNodes.Add("Objects", ReadObjects);
             root.SubNodes.Add("Connections", ReadConnections);
             root.ReadSubNodes();
+            FinalizeConnections();
             CorrectRotations(this);
             return this;
         }
