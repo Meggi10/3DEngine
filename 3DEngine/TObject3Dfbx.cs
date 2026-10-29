@@ -122,28 +122,6 @@ namespace Diablo3DEngine
             node.SubNodes.Add("AnimationCurve", ReadAnimationCurve);
             node.ReadSubNodes();
         }
-
-        void CorrectRotations(TObject3D obj)
-        {
-            if (obj.Maps.Count > 0)
-            {
-                var map = obj.Maps[0];
-                if (map.Material == null)
-                    map.Material = Materials[0];
-            }
-            if (obj.Animations != null)
-            {
-                var pre = Quaternion.Identity;
-                var preObj = obj.Children.Find(c => c.Name == "PreObject");
-                if (preObj != null) pre = preObj.Rotation;
-                foreach (var animation in obj.Animations)
-                    foreach (var key in animation.Keys)
-                        key.Bone.Rotation = pre * CreateQuaternionFromPitchYawRoll(key.Bone.EulerAngles);
-            }
-            foreach (var child in obj.Children)
-                CorrectRotations(child);
-        }
-
         void ReadAnimationStack(TNode node)
         {
             node.ID = node.ReadLong();
@@ -693,10 +671,11 @@ namespace Diablo3DEngine
         }
         public void FinalizeConnections()
         {
-            foreach (var (ID, obj) in Connections)
+            foreach (var (ID, dst) in Connections)
             {
-                if (obj is TDeformer subDeformer && subDeformer.Bone != null)
+                if (dst is TDeformer subDeformer)
                 {
+                    if (subDeformer.Bone == null) continue;
                     var mesh = subDeformer.Parent.Geometry;
                     var bone = subDeformer.Bone;
                     mesh.Bones.Add(bone);
@@ -708,7 +687,26 @@ namespace Diablo3DEngine
                         v.Weights.Add((float)subDeformer.Weights[i]);
                     }
                 }
+                else if (dst is TObject3D obj)
+                {
+                    if (obj.Maps.Count > 0)
+                    {
+                        var map = obj.Maps[0];
+                        if (map.Material == null)
+                            map.Material = Materials[0];
+                    }
+                    if (obj.Animations != null)
+                    {
+                        var pre = Quaternion.Identity;
+                        var preObj = obj.Children.Find(c => c.Name == "PreObject");
+                        if (preObj != null) pre = preObj.Rotation;
+                        foreach (var animation in obj.Animations)
+                            foreach (var key in animation.Keys)
+                                key.Bone.Rotation = pre * CreateQuaternionFromPitchYawRoll(key.Bone.EulerAngles);
+                    }
+                }
             }
+            Connections = null;
         }
         public override TObject3D LoadFromStream(Stream s)
         {
@@ -729,7 +727,6 @@ namespace Diablo3DEngine
             root.SubNodes.Add("Connections", ReadConnections);
             root.ReadSubNodes();
             FinalizeConnections();
-            CorrectRotations(this);
             return this;
         }
     }
