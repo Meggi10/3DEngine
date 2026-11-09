@@ -87,8 +87,14 @@ namespace Diablo3DEngine
                 Selected = obj;
                 obj.Scale *= new Vector3(0.4f, 0.4f, 0.4f);
                 animBox.Items.Clear();
-                foreach (var anim in obj.Animations)
-                    animBox.Items.Add(anim.Name);
+                var staticObj = obj.Animations;
+                if (staticObj != null)
+                {
+                    foreach (var anim in obj.Animations)
+                        animBox.Items.Add(anim.Name);
+                }
+                else
+                    return;
                 tglView1.Invalidate();
             }
         }
