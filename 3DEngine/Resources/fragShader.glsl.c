@@ -18,6 +18,8 @@ out vec4 color;
 void main()
 {
 	vec4 matDiffuse = texture(material.DiffuseMap, fragUV);
+	if (matDiffuse.a < 0.5)
+		discard;
 	vec3 matSpecular = texture(material.SpecularMap, fragUV).rgb;
 	color = matDiffuse;
 	
