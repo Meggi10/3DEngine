@@ -93,8 +93,7 @@ namespace Diablo3DEngine
                     foreach (var anim in obj.Animations)
                         animBox.Items.Add(anim.Name);
                 }
-                else
-                    return;
+                else return;
                 tglView1.Invalidate();
             }
         }
