@@ -29,10 +29,13 @@ namespace Diablo3DEngine
                 clip.Assign(Clip);
                 if (IsPerspective)
                 {
-                    var permute = new TAffine();
-                    permute.Cols.Swap(2, 3);
+                    //var permute = new TAffine();
+                    var permute = new Matrix4x4();
+                    Matrix4x4.Transpose(permute);
+                    //permute.Cols.Swap(2, 3);
                     ////proj.Mult(permute);
-                    //proj = permute * proj;
+                    Matrix4x4.Multiply(permute, proj);
+                    proj = permute * proj;
                     var aspect = Clip.Scale.Y / Clip.Scale.X;
                     var tgHalfFovy = (float)Math.Tan(Math.PI * Fovy / 360);
                     clip.Scale.X = tgHalfFovy / aspect;
@@ -54,6 +57,14 @@ namespace Diablo3DEngine
                 return proj;
             }
         }
-
+        public override TObject3D Parent
+        {
+            set
+            {
+                Scene?.Cameras.Remove(this);
+                base.Parent = value;
+                Scene?.Cameras.Add(this);
+            }
+        }
     }
 }
