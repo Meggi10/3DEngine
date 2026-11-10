@@ -32,6 +32,14 @@ namespace Diablo3DEngine
                 return root;
             }
         }
+
+        TScene _Scene;
+        public TScene Scene
+        {
+            get { return Root._Scene; }
+            set { Root._Scene = value; }
+        }
+
         List<TUvMap> maps;
         public List<TUvMap> Maps
         {
@@ -108,7 +116,7 @@ namespace Diablo3DEngine
         public Matrix4x4 WorldTransform;
         public List<TObject3D> Children = new List<TObject3D>();
         TObject3D parent;
-        public TObject3D Parent
+        public virtual TObject3D Parent
         {
             get { return parent; }
             set
