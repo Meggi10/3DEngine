@@ -9,7 +9,6 @@ using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -108,24 +107,6 @@ namespace Diablo3DEngine
             DrawObject(Camera.Root);
         }
 
-        //[StructLayout(LayoutKind.Sequential)]
-        //struct TElement
-        //{
-        //    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
-        //    public float[] Coords;
-        //    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
-        //    public float[] Normal;
-        //    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
-        //    public float[] Tangent;
-        //    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
-        //    public float[] Bitangent;
-        //    [MarshalAs(UnmanagedType.ByValArray, SizeConst = MAX_BONES)]
-        //    public float[] Bones;
-        //    [MarshalAs(UnmanagedType.ByValArray, SizeConst = MAX_BONES)]
-        //    public float[] Weights;
-        //    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
-        //    public float[] UV;
-        //}
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         struct TElement
         {
@@ -137,7 +118,6 @@ namespace Diablo3DEngine
             public Vector4 Weights;
             public Vector2 UV;
         }
-
         public void DrawObject(TObject3D obj)
         {
             obj.WorldTransform = obj.Transform;
@@ -219,7 +199,6 @@ namespace Diablo3DEngine
                     //OpenGL.Uniform4f(uniformLoc++, map.Material.SpecularMap.Color);
                 }
                 int boneCount = Math.Min(obj.Bones.Count, MAX_BONE_MATRICES);
-                //var boneMatrix = new Matrix4x4[obj.Bones.Count];
                 var boneMatrix = new Matrix4x4[Math.Max(boneCount, 1)];
                 boneMatrix[0] = Matrix4x4.Identity;
                 for (int i = 0; i < boneCount; i++)
@@ -228,7 +207,6 @@ namespace Diablo3DEngine
                     boneMatrix[i] = Matrix4x4.Multiply(bone.BindPoseInv, bone.WorldTransform);
                 }
                 OpenGL.BindBuffer(OpenGL.GL_UNIFORM_BUFFER, UboBones);
-                //OpenGL.BufferDatafv(OpenGL.GL_UNIFORM_BUFFER, boneMatrix.Data, OpenGL.GL_DYNAMIC_DRAW);
                 if (boneMatrix.Length > 0)
                     fixed (float* ptr = &boneMatrix[0].M11)
                     {
