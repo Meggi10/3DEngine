@@ -29,6 +29,9 @@ namespace Diablo3DEngine
         uint UboCamera;
         uint UboBones;
         uint UboLights;
+        uint woitFbo;
+        uint accumTexture;
+        uint revealTexture;
 
         public IntPtr Handle
         {
@@ -62,7 +65,48 @@ namespace Diablo3DEngine
                 return HRC;
             }
         }
-        static string ReadManifestText(string dotPath)
+
+    void InitWoitFramebuffer(int opaqueDepthBuffer)
+    {
+        var width = View.Width;
+            var height = View.Height;
+            uint id;
+            OpenGL.GenFramebuffers(1, &id);
+            woitFbo = id;
+        OpenGL.BindFramebuffer(OpenGL.GL_FRAMEBUFFER, woitFbo);
+
+        // 1. Tekstura Accumulation (RGBA16F dla wysokiej precyzji)
+        accumTexture = OpenGL.GenTexture();
+        OpenGL.BindTexture(TextureTarget.Texture2D, accumTexture);
+        OpenGL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba16f, width, height, 0, PixelFormat.Rgba, PixelType.HalfFloat, IntPtr.Zero);
+        OpenGL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+        OpenGL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+        OpenGL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, accumTexture, 0);
+
+        // 2. Tekstura Revealage (R8 lub R16F)
+        revealTexture = OpenGL.GenTexture();
+        OpenGL.BindTexture(TextureTarget.Texture2D, revealTexture);
+        OpenGL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.R8, width, height, 0, PixelFormat.Red, PixelType.UnsignedByte, IntPtr.Zero);
+        OpenGL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+        OpenGL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+        OpenGL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment1, TextureTarget.Texture2D, revealTexture, 0);
+
+        // 3. Podpięcie współdzielonego bufora głębi (np. z FBO obiektów nieprzezroczystych)
+        OpenGL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, opaqueDepthBuffer);
+
+        // 4. Określenie buforów wyjściowych (MRT)
+        DrawBuffersEnum[] drawBuffers = { DrawBuffersEnum.ColorAttachment0, DrawBuffersEnum.ColorAttachment1 };
+        OpenGL.DrawBuffers(2, drawBuffers);
+
+        if (OpenGL.CheckFramebufferStatus(FramebufferTarget.Framebuffer) != FramebufferErrorCode.FramebufferComplete)
+        {
+            throw new Exception("Błąd inicjalizacji WOIT Framebuffer!");
+        }
+
+        OpenGL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+    }
+
+    static string ReadManifestText(string dotPath)
         {
             var assembly = Assembly.GetExecutingAssembly();
             string rootNamespace = assembly.GetName().Name;
