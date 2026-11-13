@@ -16,6 +16,11 @@ namespace Diablo3DEngine
         public TTexture SpecularMap = new TTexture();
         public TTexture NormalMap = new TTexture();
         public TTexture[] Textures;
+        public float Transparency;
+        public Color TransparentColor;
+        public float Shininess;
+        public float Reflectivity;
+
         public class TTexture
         {
             public Color Color;
