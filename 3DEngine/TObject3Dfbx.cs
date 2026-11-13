@@ -20,6 +20,7 @@ namespace Diablo3DEngine
         List<Vector2> TexVertices;
         string RefInf;
         public static long TicksPerSecond = 46186158000;
+        TMaterial DefMaterial = new TMaterial();
 
         public class TNode
         {
@@ -183,6 +184,34 @@ namespace Diablo3DEngine
             Connections.Add(node.ID, node.Owner);
         }
 
+        void ReadDefinitions(TNode node)
+        {
+            node.SubNodes.Add("ObjectType", ReadObjectType);
+            node.ReadSubNodes();
+        }
+        void ReadObjectType(TNode node)
+        {
+            var name = node.ReadString();
+            switch (name)
+            {
+                case "GlobalSettings":
+                    break;
+                case "Model":
+                    break;
+                case "Material":
+                    node.Owner = DefMaterial;
+                    node.SubNodes.Add("PropertyTemplate", ReadPropertyTemplate);
+                    node.ReadSubNodes();
+                    break;
+            }
+        }
+
+        void ReadPropertyTemplate(TNode node)
+        {
+            node.ID = node.ReadLong();
+            node.SubNodes.Add("Properties70", ReadProperties);
+            node.ReadSubNodes();
+        }
 
         void ReadModel(TNode node)
         {
@@ -193,6 +222,7 @@ namespace Diablo3DEngine
             Connections.Add(node.ID, node.Owner);
             node.SubNodes.Add("Properties70", ReadProperties);
             node.ReadSubNodes();
+            //Check out!
             if (obj.Children.Count > 0)
                 obj.Rotation = obj.Children[0].Rotation * obj.Rotation;
         }
@@ -415,6 +445,25 @@ namespace Diablo3DEngine
                         var material = node.Owner as TMaterial;
                         var color = ReadVector(node) * 255;
                         material.DiffuseMap.Color = Color.FromArgb((int)color.X, (int)color.Y, (int)color.Z);
+                        break;
+                    }
+                case "TransparencyFactor":
+                    {
+                        var material = node.Owner as TMaterial;
+                        material.Transparency = (float)node.ReadDouble();
+                        break;
+                    }
+                case "TransparentColor":
+                    {
+                        var material = node.Owner as TMaterial;
+                        var color = ReadVector(node) * 255;
+                        material.TransparentColor = Color.FromArgb((int)color.X, (int)color.Y, (int)color.Z);
+                        break;
+                    }
+                case "Opacity":
+                    {
+                        var material = node.Owner as TMaterial;
+                        material.Transparency = 1f - (float)node.ReadDouble();
                         break;
                     }
                 case "Lcl Scaling":
@@ -710,6 +759,7 @@ namespace Diablo3DEngine
         }
         public override TObject3D LoadFromStream(Stream s)
         {
+            Materials.Add(DefMaterial);
             Connections.Add(0, this);
             //FilePath = Path.GetDirectoryName((s as FileStream).Name) + "/";
             TextureFiles.AddRange(Directory.GetFiles(FilePath, "*.jpg"));
@@ -723,6 +773,7 @@ namespace Diablo3DEngine
             var root = new TNode();
             root.Reader = reader;
             root.StartPos = (int)reader.BaseStream.Position;
+            root.SubNodes.Add("Definitions", ReadDefinitions);
             root.SubNodes.Add("Objects", ReadObjects);
             root.SubNodes.Add("Connections", ReadConnections);
             root.ReadSubNodes();
