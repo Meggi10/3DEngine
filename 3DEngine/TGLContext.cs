@@ -32,6 +32,8 @@ namespace Diablo3DEngine
         uint woitFbo;
         uint accumTexture;
         uint revealTexture;
+        uint depthRbo;
+        int woitW, woitH;
 
         public IntPtr Handle
         {
@@ -66,47 +68,70 @@ namespace Diablo3DEngine
             }
         }
 
-    void InitWoitFramebuffer(int opaqueDepthBuffer)
-    {
-        var width = View.Width;
+        void InitWoitFramebuffer(int opaqueDepthBuffer)
+        {
+            var width = View.Width;
             var height = View.Height;
             uint id;
             OpenGL.GenFramebuffers(1, &id);
             woitFbo = id;
-        OpenGL.BindFramebuffer(OpenGL.GL_FRAMEBUFFER, woitFbo);
+            OpenGL.BindFramebuffer(OpenGL.GL_FRAMEBUFFER, woitFbo);
 
-        // 1. Tekstura Accumulation (RGBA16F dla wysokiej precyzji)
-        accumTexture = OpenGL.GenTexture();
-        OpenGL.BindTexture(TextureTarget.Texture2D, accumTexture);
-        OpenGL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba16f, width, height, 0, PixelFormat.Rgba, PixelType.HalfFloat, IntPtr.Zero);
-        OpenGL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-        OpenGL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-        OpenGL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, accumTexture, 0);
+            // 1. Tekstura Accumulation (RGBA16F dla wysokiej precyzji)
+            OpenGL.GenTextures(1, &id);
+            accumTexture = id;
+            OpenGL.BindTexture(OpenGL.GL_TEXTURE_2D, accumTexture);
+            OpenGL.TexImage2D(OpenGL.GL_TEXTURE_2D, 0, (int)OpenGL.GL_RGBA16F, width, height, 0, OpenGL.GL_RGBA, OpenGL.GL_HALF_FLOAT, null);
+            OpenGL.TexParameteri(OpenGL.GL_TEXTURE_2D, OpenGL.GL_TEXTURE_MIN_FILTER, (int)OpenGL.GL_LINEAR);
+            OpenGL.TexParameteri(OpenGL.GL_TEXTURE_2D, OpenGL.GL_TEXTURE_MAG_FILTER, (int)OpenGL.GL_LINEAR);
+            OpenGL.FramebufferTexture2D(OpenGL.GL_FRAMEBUFFER, OpenGL.GL_COLOR_ATTACHMENT0, OpenGL.GL_TEXTURE_2D, accumTexture, 0);
 
-        // 2. Tekstura Revealage (R8 lub R16F)
-        revealTexture = OpenGL.GenTexture();
-        OpenGL.BindTexture(TextureTarget.Texture2D, revealTexture);
-        OpenGL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.R8, width, height, 0, PixelFormat.Red, PixelType.UnsignedByte, IntPtr.Zero);
-        OpenGL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-        OpenGL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-        OpenGL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment1, TextureTarget.Texture2D, revealTexture, 0);
+            // 2. Tekstura Revealage (R8 lub R16F)
+            OpenGL.GenTextures(1, &id);
+            revealTexture = id;
+            OpenGL.BindTexture(OpenGL.GL_TEXTURE_2D, revealTexture);
+            OpenGL.TexImage2D(OpenGL.GL_TEXTURE_2D, 0, (int)OpenGL.GL_R8, width, height, 0, OpenGL.GL_RED, OpenGL.GL_UNSIGNED_BYTE, null);
+            OpenGL.TexParameteri(OpenGL.GL_TEXTURE_2D, OpenGL.GL_TEXTURE_MIN_FILTER, (int)OpenGL.GL_LINEAR);
+            OpenGL.TexParameteri(OpenGL.GL_TEXTURE_2D, OpenGL.GL_TEXTURE_MAG_FILTER, (int)OpenGL.GL_LINEAR);
+            OpenGL.FramebufferTexture2D(OpenGL.GL_FRAMEBUFFER, OpenGL.GL_COLOR_ATTACHMENT1, OpenGL.GL_TEXTURE_2D, revealTexture, 0);
 
-        // 3. Podpięcie współdzielonego bufora głębi (np. z FBO obiektów nieprzezroczystych)
-        OpenGL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, opaqueDepthBuffer);
+            // 3. Podpięcie współdzielonego bufora głębi (np. z FBO obiektów nieprzezroczystych)
+            OpenGL.FramebufferRenderbuffer(OpenGL.GL_FRAMEBUFFER, OpenGL.GL_DEPTH_ATTACHMENT, OpenGL.GL_RENDERBUFFER, (uint)opaqueDepthBuffer);
 
-        // 4. Określenie buforów wyjściowych (MRT)
-        DrawBuffersEnum[] drawBuffers = { DrawBuffersEnum.ColorAttachment0, DrawBuffersEnum.ColorAttachment1 };
-        OpenGL.DrawBuffers(2, drawBuffers);
-
-        if (OpenGL.CheckFramebufferStatus(FramebufferTarget.Framebuffer) != FramebufferErrorCode.FramebufferComplete)
-        {
-            throw new Exception("Błąd inicjalizacji WOIT Framebuffer!");
+            // 4. Określenie buforów wyjściowych (MRT)
+            uint* buffers = stackalloc uint[] { OpenGL.GL_COLOR_ATTACHMENT0, OpenGL.GL_COLOR_ATTACHMENT1 };
+            OpenGL.DrawBuffers(2, buffers);
+            if (OpenGL.CheckFramebufferStatus(OpenGL.GL_FRAMEBUFFER) != OpenGL.GL_FRAMEBUFFER_COMPLETE)
+            {
+                throw new Exception("Błąd inicjalizacji WOIT Framebuffer!");
+            }
+            OpenGL.BindFramebuffer(OpenGL.GL_FRAMEBUFFER, 0);
         }
 
-        OpenGL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
-    }
+        void EnsureWoit()
+        {
+            int w = View.Width;
+            int h = View.Height;
+            if (woitFbo != 0 && w == woitW && h == woitH)
+                return;
 
-    static string ReadManifestText(string dotPath)
+            // stare tekstury (FBO i renderbuffer)
+            uint id;
+            if (accumTexture != 0) { id = accumTexture; OpenGL.DeleteTextures(1, &id); }
+            if (revealTexture != 0) { id = revealTexture; OpenGL.DeleteTextures(1, &id); }
+
+            // renderbuffer głębi
+            OpenGL.GenRenderbuffers(1, &id);
+            depthRbo = id;
+            OpenGL.BindRenderbuffer(OpenGL.GL_RENDERBUFFER, depthRbo);
+            OpenGL.RenderbufferStorageMultisample(OpenGL.GL_RENDERBUFFER, 0, OpenGL.GL_DEPTH_COMPONENT24, w, h);
+
+            InitWoitFramebuffer((int)depthRbo);
+            woitW = w;
+            woitH = h;
+        }
+
+        static string ReadManifestText(string dotPath)
         {
             var assembly = Assembly.GetExecutingAssembly();
             string rootNamespace = assembly.GetName().Name;
@@ -126,6 +151,7 @@ namespace Diablo3DEngine
                 OpenGL.ClearColor(bg.R / 255f, bg.G / 255f, bg.B / 255f, 1);
                 OpenGL.Clear(OpenGL.GL_COLOR_BUFFER_BIT | OpenGL.GL_DEPTH_BUFFER_BIT);
                 Init();
+                EnsureWoit();
                 DrawScene();
                 Win32.SwapBuffers(HDC);
             }
