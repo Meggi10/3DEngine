@@ -25,6 +25,7 @@ namespace TGL
         public static delegate* unmanaged[Stdcall]<float*, void> MultMatrixf;
         public static delegate* unmanaged[Stdcall]<uint, uint, void> PolygonMode;
         public static delegate* unmanaged[Stdcall]<uint, int, int, int, int, int, uint, uint, void*, void> TexImage2D;
+        public static delegate* unmanaged[Stdcall]<uint, uint, int, void> TexParameteri;
         public static delegate* unmanaged[Stdcall]<float, float, void> Vertex2f;
         public static delegate* unmanaged[Stdcall]<float, float, float, void> Vertex3f;
         public static delegate* unmanaged[Stdcall]<int, int, int, int, void> Viewport;
@@ -39,6 +40,7 @@ namespace TGL
         public static delegate* unmanaged[Cdecl]<int, int, int, int, int, int, int, int, uint, uint, void> BlitFramebuffer;
         public static delegate* unmanaged[Cdecl]<uint, nint, void*, uint, void> BufferData;
         public static delegate* unmanaged[Cdecl]<uint, nint, nint, void*, void> BufferSubData;
+        public static delegate* unmanaged[Cdecl]<uint, uint> CheckFramebufferStatus;
         private static delegate* unmanaged[Cdecl]<uint, void> glCompileShader;
         public static delegate* unmanaged[Cdecl]<uint> CreateProgram;
         public static delegate* unmanaged[Cdecl]<uint, uint> CreateShader;
@@ -47,6 +49,9 @@ namespace TGL
         public static delegate* unmanaged[Cdecl]<uint, uint, uint, uint, void> FramebufferRenderbuffer;
         public static delegate* unmanaged[Cdecl]<int, uint*, void> GenBuffers;
         public static delegate* unmanaged[Cdecl]<int, uint*, void> DeleteBuffers;
+        public static delegate* unmanaged[Cdecl]<int, uint*, void> DeleteFramebuffers;
+        public static delegate* unmanaged[Cdecl]<int, uint*, void> DeleteRenderbuffers;
+        public static delegate* unmanaged[Cdecl]<int, uint*, void> DrawBuffers;
         public static delegate* unmanaged[Cdecl]<int, uint*, void> GenFramebuffers;
         public static delegate* unmanaged[Cdecl]<int, uint*, void> GenRenderbuffers;
         public static delegate* unmanaged[Cdecl]<int, uint*, void> GenVertexArrays;
@@ -54,6 +59,7 @@ namespace TGL
         public static delegate* unmanaged[Cdecl]<uint, nint, nint, void*, void> GetBufferSubData;
         public static delegate* unmanaged[Cdecl]<uint, uint, int*, void> GetShaderiv;
         public static delegate* unmanaged[Cdecl]<uint, int, int*, uint*, void> GetAttachedShaders;
+        public static delegate* unmanaged[Cdecl]<uint, uint, uint, uint, int, void> FramebufferTexture2D;
         public static delegate* unmanaged[Cdecl]<uint, void> LinkProgram;
         public static delegate* unmanaged[Cdecl]<MemoryBarrierFlags, void> MemoryBarrier;
         public static delegate* unmanaged[Cdecl]<uint, int, uint, int, int, void> RenderbufferStorageMultisample;
@@ -119,6 +125,7 @@ namespace TGL
             MultMatrixf = (delegate* unmanaged[Stdcall]<float*, void>)GetCore("MultMatrixf");
             PolygonMode = (delegate* unmanaged[Stdcall]<uint, uint, void>)GetCore("PolygonMode");
             TexImage2D = (delegate* unmanaged[Stdcall]<uint, int, int, int, int, int, uint, uint, void*, void>)GetCore("TexImage2D");
+            TexParameteri = (delegate* unmanaged[Stdcall]<uint, uint, int, void>)GetCore("TexParameteri");
             Vertex2f = (delegate* unmanaged[Stdcall]<float, float, void>)GetCore("Vertex2f");
             Vertex3f = (delegate* unmanaged[Stdcall]<float, float, float, void>)GetCore("Vertex3f");
             Viewport = (delegate* unmanaged[Stdcall]<int, int, int, int, void>)GetCore("Viewport");
@@ -133,11 +140,16 @@ namespace TGL
             BufferData = (delegate* unmanaged[Cdecl]<uint, nint, void*, uint, void>)GetExt("BufferData");
             BufferSubData = (delegate* unmanaged[Cdecl]<uint, nint, nint, void*, void>)GetExt("BufferSubData");
             glCompileShader = (delegate* unmanaged[Cdecl]<uint, void>)GetExt("CompileShader");
+            CheckFramebufferStatus = (delegate* unmanaged[Cdecl]<uint, uint>)GetExt("CheckFramebufferStatus");
             CreateProgram = (delegate* unmanaged[Cdecl]<uint>)GetExt("CreateProgram");
             CreateShader = (delegate* unmanaged[Cdecl]<uint, uint>)GetExt("CreateShader");
+            DeleteFramebuffers = (delegate* unmanaged[Cdecl]<int, uint*, void>)GetExt("DeleteFramebuffers");
+            DeleteRenderbuffers = (delegate* unmanaged[Cdecl]<int, uint*, void>)GetExt("DeleteRenderbuffers");
             DispatchCompute = (delegate* unmanaged[Cdecl]<uint, uint, uint, void>)GetExt("DispatchCompute");
+            DrawBuffers = (delegate* unmanaged[Cdecl]<int, uint*, void>)GetExt("DrawBuffers");
             EnableVertexAttribArray = (delegate* unmanaged[Cdecl]<uint, void>)GetExt("EnableVertexAttribArray");
             FramebufferRenderbuffer = (delegate* unmanaged[Cdecl]<uint, uint, uint, uint, void>)GetExt("FramebufferRenderbuffer");
+            FramebufferTexture2D = (delegate* unmanaged[Cdecl]<uint, uint, uint, uint, int, void>)GetExt("FramebufferTexture2D");
             GenBuffers = (delegate* unmanaged[Cdecl]<int, uint*, void>)GetExt("GenBuffers");
             DeleteBuffers = (delegate* unmanaged[Cdecl]<int, uint*, void>)GetExt("DeleteBuffers");
             GenFramebuffers = (delegate* unmanaged[Cdecl]<int, uint*, void>)GetExt("GenFramebuffers");
@@ -195,6 +207,15 @@ namespace TGL
         public const uint GL_COLOR_ATTACHMENT0 = 0x8CE0;
         public const uint GL_DEPTH_STENCIL_ATTACHMENT = 0x821A;
         public const uint GL_DEPTH24_STENCIL8 = 0x88F0;
+        public const uint GL_DEPTH_COMPONENT24 = 0x81A6;
+        public const uint GL_RGBA = 0x1908;
+        public const uint GL_RED = 0x1903;
+        public const uint GL_RGBA16F = 0x881A;
+        public const uint GL_R8 = 0x8229;
+        public const uint GL_HALF_FLOAT = 0x140B;
+        public const uint GL_COLOR_ATTACHMENT1 = 0x8CE1;
+        public const uint GL_DEPTH_ATTACHMENT = 0x8D00;
+        public const uint GL_FRAMEBUFFER_COMPLETE = 0x8CD5;
         //   DataType
         public const uint GL_BYTE = 0x1400;
         public const uint GL_UNSIGNED_BYTE = 0x1401;
@@ -234,6 +255,8 @@ namespace TGL
         //  Mag filters
         public const uint GL_NEAREST = 0x2600;
         public const uint GL_LINEAR = 0x2601;
+        public const uint GL_TEXTURE_MAG_FILTER = 0x2800;
+        public const uint GL_TEXTURE_MIN_FILTER = 0x2801;
         //  WGL Context
         public const uint WGL_DRAW_TO_WINDOW = 0x2001;
         public const uint WGL_DRAW_TO_BITMAP = 0x2002;
