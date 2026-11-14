@@ -21,6 +21,7 @@ namespace Diablo3DEngine
         public List<TMaterial> Materials = new List<TMaterial>();
         public List<TObject3D> Bones = new List<TObject3D>();
         public Matrix4x4 BindPoseInv = new Matrix4x4();
+        public TLight Light;
         public string Name;
         bool? opaque;
         public bool? Opaque
