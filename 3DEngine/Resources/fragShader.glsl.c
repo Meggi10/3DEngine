@@ -14,15 +14,15 @@ struct Material {
 };
 
 struct Light {
-	vec3 position;
-	vec3 ambient;
-	vec3 diffuse;
-	vec3 specular;
+	vec3 Position;
+	vec3 AmbientLight;
+	vec3 DiffuseLight;
+	vec3 SpecularLight;
 };
 
 layout(location = 1) uniform Material material;
-uniform Light light;
-uniform vec3 viewPos; // Pozycja kamery w przestrzeni œwiata
+layout(location = 5) uniform Light light;
+layout(location = 9) uniform vec3 viewPos; // Pozycja kamery w przestrzeni œwiata
 
 // Dwa wyjœcia dla WOIT (Multiple Render Targets)
 layout(location = 0) out vec4 accum;
@@ -48,20 +48,20 @@ void main()
 	vec3 N = normalize(TBN * normal);
 
 	// --- 2. MODEL OŒWIETLENIA BUI TUONG PHONGA ---
-	vec3 L = normalize(light.position - fragPos); // Kierunek do œwiat³a
+	vec3 L = normalize(light.Position - fragPos); // Kierunek do œwiat³a
 	vec3 V = normalize(viewPos - fragPos);        // Kierunek do kamery
 	vec3 R = reflect(-L, N);                      // Odbicie œwiat³a (klasyczny Phong)
 
 	// Sk³adowa otoczenia (Ambient)
-	vec3 ambient = light.ambient * matDiffuse.rgb;
+	vec3 ambient = light.AmbientLight * matDiffuse.rgb;
 
 	// Sk³adowa rozproszona (Diffuse)
 	float diff = max(dot(N, L), 0.0);
-	vec3 diffuse = light.diffuse * diff * matDiffuse.rgb;
+	vec3 diffuse = light.DiffuseLight * diff * matDiffuse.rgb;
 
 	// Sk³adowa lustrzana (Specular)
-	float spec = pow(max(dot(V, R), 0.0), material.Shininess);
-	vec3 specular = light.specular * spec * matSpecular;
+	float spec = pow(max(dot(V, R), 0.0), max(material.Shininess, 1.0));
+	vec3 specular = light.SpecularLight * spec * matSpecular;
 
 	vec3 finalColor = ambient + diffuse + specular;
 	float alpha = matDiffuse.a;
