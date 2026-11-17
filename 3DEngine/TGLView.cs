@@ -34,5 +34,18 @@ namespace Diablo3DEngine
         {
             Context.DrawView();
         }
+        protected override void OnResize(EventArgs e)
+        {
+            if (Handle != IntPtr.Zero)
+                Context.EnsureWoit();
+        }
+        protected override void OnHandleCreated(EventArgs e)
+        {
+            Context.CreateHandle();
+        }
+        protected override void OnHandleDestroyed(EventArgs e)
+        {
+            Context.Release();
+        }
     }
 }
