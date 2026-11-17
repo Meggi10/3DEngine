@@ -1,6 +1,6 @@
 #version 430 core
 
-in vec3 fragPos; // DODANE: pozycja wierzcho³ka w przestrzeni œwiata (z Vertex Shadera)
+in vec3 fragCoords; // DODANE: pozycja wierzcho³ka w przestrzeni œwiata (z Vertex Shadera)
 in vec3 fragNormal;
 in vec3 fragTangent;
 in vec3 fragBitangent;
@@ -48,8 +48,8 @@ void main()
 	vec3 N = normalize(TBN * normal);
 
 	// --- 2. MODEL OŒWIETLENIA BUI TUONG PHONGA ---
-	vec3 L = normalize(light.Position - fragPos); // Kierunek do œwiat³a
-	vec3 V = normalize(viewPos - fragPos);        // Kierunek do kamery
+	vec3 L = normalize(light.Position - fragCoords); // Kierunek do œwiat³a
+	vec3 V = normalize(viewPos - fragCoords);        // Kierunek do kamery
 	vec3 R = reflect(-L, N);                      // Odbicie œwiat³a (klasyczny Phong)
 
 	// Sk³adowa otoczenia (Ambient)
