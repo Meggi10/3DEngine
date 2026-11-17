@@ -16,9 +16,11 @@ using TGL;
 
 namespace Diablo3DEngine
 {
+    public enum TDrawMode {Opaque, Transparent, Selection}
     public unsafe class TGLContext
     {
         public TGLView View;
+        TDrawMode DrawMode;
         IntPtr HDC;
         IntPtr HRC;
         public TCamera Camera = new TCamera();
@@ -35,37 +37,35 @@ namespace Diablo3DEngine
         uint depthRbo;
         int woitW, woitH;
 
-        public IntPtr Handle
+        public void CreateHandle()
         {
-            get
-            {
-                if (HRC == IntPtr.Zero)
-                {
-                    HDC = View.CreateGraphics().GetHdc();
-                    var pfd = new Win32.PIXELFORMATDESCRIPTOR();
-                    var idx = Win32.ChoosePixelFormat(HDC, &pfd);
-                    Win32.SetPixelFormat(HDC, idx, &pfd);
-                    HRC = Win32.wglCreateContext(HDC);
-                    Win32.wglMakeCurrent(HDC, HRC);
-                    var gpuProgram = OpenGL.CreateProgram();
-                    var vertexShader = OpenGL.CreateShader(OpenGL.GL_VERTEX_SHADER);
-                    OpenGL.CompileShader(vertexShader, ReadManifestText("Resources.vertexShader.glsl.c"));
-                    OpenGL.AttachShader(gpuProgram, vertexShader);
-                    var fragShader = OpenGL.CreateShader(OpenGL.GL_FRAGMENT_SHADER);
-                    OpenGL.CompileShader(fragShader, ReadManifestText("Resources.fragShader.glsl.c"));
-                    OpenGL.AttachShader(gpuProgram, fragShader);
-                    OpenGL.LinkProgram(gpuProgram);
-                    OpenGL.UseProgram(gpuProgram);
-                    uint rId;
-                    OpenGL.GenBuffers(1, &rId); UboCamera = rId;
-                    OpenGL.BindBufferBase(OpenGL.GL_UNIFORM_BUFFER, 0, UboCamera);
-                    OpenGL.GenBuffers(1, &rId); UboBones = rId;
-                    OpenGL.BindBufferBase(OpenGL.GL_UNIFORM_BUFFER, 1, UboBones);
-                    OpenGL.GenBuffers(1, &rId); UboLights = rId;
-                    OpenGL.BindBufferBase(OpenGL.GL_UNIFORM_BUFFER, 2, UboLights);
-                }
-                return HRC;
-            }
+            HDC = View.CreateGraphics().GetHdc();
+            var pfd = new Win32.PIXELFORMATDESCRIPTOR();
+            var idx = Win32.ChoosePixelFormat(HDC, &pfd);
+            Win32.SetPixelFormat(HDC, idx, &pfd);
+            HRC = Win32.wglCreateContext(HDC);
+            Win32.wglMakeCurrent(HDC, HRC);
+            var gpuProgram = OpenGL.CreateProgram();
+            var vertexShader = OpenGL.CreateShader(OpenGL.GL_VERTEX_SHADER);
+            OpenGL.CompileShader(vertexShader, ReadManifestText("Resources.vertexShader.glsl.c"));
+            OpenGL.AttachShader(gpuProgram, vertexShader);
+            var fragShader = OpenGL.CreateShader(OpenGL.GL_FRAGMENT_SHADER);
+            OpenGL.CompileShader(fragShader, ReadManifestText("Resources.fragShader.glsl.c"));
+            OpenGL.AttachShader(gpuProgram, fragShader);
+            OpenGL.LinkProgram(gpuProgram);
+            OpenGL.UseProgram(gpuProgram);
+            uint rId;
+            OpenGL.GenBuffers(1, &rId); UboCamera = rId;
+            OpenGL.BindBufferBase(OpenGL.GL_UNIFORM_BUFFER, 0, UboCamera);
+            OpenGL.GenBuffers(1, &rId); UboBones = rId;
+            OpenGL.BindBufferBase(OpenGL.GL_UNIFORM_BUFFER, 1, UboBones);
+            OpenGL.GenBuffers(1, &rId); UboLights = rId;
+            OpenGL.BindBufferBase(OpenGL.GL_UNIFORM_BUFFER, 2, UboLights);
+        }
+        public void Release()
+        {
+            Win32.wglMakeCurrent(IntPtr.Zero, IntPtr.Zero);
+            Win32.wglDeleteContext(HRC);
         }
 
         void InitWoitFramebuffer(int opaqueDepthBuffer)
@@ -108,7 +108,8 @@ namespace Diablo3DEngine
             OpenGL.BindFramebuffer(OpenGL.GL_FRAMEBUFFER, 0);
         }
 
-        void EnsureWoit()
+        //Check helper method!
+        public void EnsureWoit()
         {
             int w = View.Width;
             int h = View.Height;
@@ -142,19 +143,18 @@ namespace Diablo3DEngine
         }
         internal void DrawView()
         {
-            if (Handle != IntPtr.Zero)
-            {
-                Win32.wglMakeCurrent(HDC, HRC);
-                var vp = View.ClientRectangle;
-                OpenGL.Viewport(vp.Left, vp.Top, vp.Width, vp.Height);
-                var bg = View.BackColor;
-                OpenGL.ClearColor(bg.R / 255f, bg.G / 255f, bg.B / 255f, 1);
-                OpenGL.Clear(OpenGL.GL_COLOR_BUFFER_BIT | OpenGL.GL_DEPTH_BUFFER_BIT);
-                Init();
-                EnsureWoit();
-                DrawScene();
-                Win32.SwapBuffers(HDC);
-            }
+            Win32.wglMakeCurrent(HDC, HRC);
+            var vp = View.ClientRectangle;
+            OpenGL.Viewport(vp.Left, vp.Top, vp.Width, vp.Height);
+            var bg = View.BackColor;
+            OpenGL.ClearColor(bg.R / 255f, bg.G / 255f, bg.B / 255f, 1);
+            OpenGL.Clear(OpenGL.GL_COLOR_BUFFER_BIT | OpenGL.GL_DEPTH_BUFFER_BIT);
+            Init();
+            DrawMode = TDrawMode.Opaque;
+            DrawScene();
+            DrawMode = TDrawMode.Transparent;
+            DrawScene();
+            Win32.SwapBuffers(HDC);
         }
         void Init()
         {
@@ -190,9 +190,16 @@ namespace Diablo3DEngine
         }
         public void DrawObject(TObject3D obj)
         {
-            obj.WorldTransform = obj.Transform;
-            if (obj != Camera.Root && obj.Parent != Camera.Root)
-                obj.WorldTransform = obj.Transform * obj.Parent.WorldTransform;
+            if (DrawMode == TDrawMode.Opaque)
+            {
+                obj.WorldTransform = obj.Transform;
+                if (obj != Camera.Root && obj.Parent != Camera.Root)
+                    obj.WorldTransform = obj.Transform * obj.Parent.WorldTransform;
+            }
+            if (DrawMode == TDrawMode.Opaque && !obj.Opaque.Value)
+                return;
+            if (DrawMode == TDrawMode.Transparent && obj.Opaque.Value)
+                return;
             foreach (var map in obj.Maps)
             {
                 if (map.DisplayMap == 0)
