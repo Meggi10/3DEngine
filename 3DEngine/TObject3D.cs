@@ -173,6 +173,7 @@ namespace Diablo3DEngine
             var obj = new TObject3D();
             var mat = new TMaterial();
             obj.Materials.Add(mat);
+            mat.DiffuseMap.Color = Color.Green;
             var lbn = new Vector3(-1, -1, -1);
             var rtf = new Vector3(1, 1, 1);
             for (int i = 0; i < 8; i++)
