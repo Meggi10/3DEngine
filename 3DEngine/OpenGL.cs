@@ -30,68 +30,48 @@ namespace TGL
         public static delegate* unmanaged[Stdcall]<float, float, float, void> Vertex3f;
         public static delegate* unmanaged[Stdcall]<int, int, int, int, void> Viewport;
         // Extentions
-        public static delegate* unmanaged[Cdecl]<uint, void> ActiveTexture;
-        public static delegate* unmanaged[Cdecl]<uint, uint, void> AttachShader;
-        public static delegate* unmanaged[Cdecl]<uint, uint, void> BindBuffer;
-        public static delegate* unmanaged[Cdecl]<uint, uint, uint, void> BindBufferBase;
-        public static delegate* unmanaged[Cdecl]<uint, uint, void> BindFramebuffer;
-        public static delegate* unmanaged[Cdecl]<uint, uint, void> BindRenderbuffer;
-        public static delegate* unmanaged[Cdecl]<uint, void> BindVertexArray;
-        public static delegate* unmanaged[Cdecl]<int, int, int, int, int, int, int, int, uint, uint, void> BlitFramebuffer;
-        public static delegate* unmanaged[Cdecl]<uint, nint, void*, uint, void> BufferData;
-        public static delegate* unmanaged[Cdecl]<uint, nint, nint, void*, void> BufferSubData;
-        public static delegate* unmanaged[Cdecl]<uint, uint> CheckFramebufferStatus;
-        private static delegate* unmanaged[Cdecl]<uint, void> glCompileShader;
-        public static delegate* unmanaged[Cdecl]<uint> CreateProgram;
-        public static delegate* unmanaged[Cdecl]<uint, uint> CreateShader;
-        public static delegate* unmanaged[Cdecl]<uint, uint, uint, void> DispatchCompute;
-        public static delegate* unmanaged[Cdecl]<uint, void> EnableVertexAttribArray;
-        public static delegate* unmanaged[Cdecl]<uint, uint, uint, uint, void> FramebufferRenderbuffer;
-        public static delegate* unmanaged[Cdecl]<int, uint*, void> GenBuffers;
-        public static delegate* unmanaged[Cdecl]<int, uint*, void> DeleteBuffers;
-        public static delegate* unmanaged[Cdecl]<int, uint*, void> DeleteFramebuffers;
-        public static delegate* unmanaged[Cdecl]<int, uint*, void> DeleteRenderbuffers;
-        public static delegate* unmanaged[Cdecl]<int, uint*, void> DrawBuffers;
-        public static delegate* unmanaged[Cdecl]<int, uint*, void> GenFramebuffers;
-        public static delegate* unmanaged[Cdecl]<int, uint*, void> GenRenderbuffers;
-        public static delegate* unmanaged[Cdecl]<int, uint*, void> GenVertexArrays;
-        public static delegate* unmanaged[Cdecl]<uint, void> GenerateMipmap;
-        public static delegate* unmanaged[Cdecl]<uint, nint, nint, void*, void> GetBufferSubData;
-        public static delegate* unmanaged[Cdecl]<uint, uint, int*, void> GetShaderiv;
-        public static delegate* unmanaged[Cdecl]<uint, int, int*, uint*, void> GetAttachedShaders;
-        public static delegate* unmanaged[Cdecl]<uint, uint, uint, uint, int, void> FramebufferTexture2D;
-        public static delegate* unmanaged[Cdecl]<uint, void> LinkProgram;
-        public static delegate* unmanaged[Cdecl]<MemoryBarrierFlags, void> MemoryBarrier;
-        public static delegate* unmanaged[Cdecl]<uint, int, uint, int, int, void> RenderbufferStorageMultisample;
-        private static delegate* unmanaged[Cdecl]<uint, int, byte**, int*, void> glShaderSource;
-        public static delegate* unmanaged[Cdecl]<int, float, void> Uniform1f;
-        public static delegate* unmanaged[Cdecl]<int, int, void> Uniform1i;
-        public static delegate* unmanaged[Cdecl]<int, uint, void> Uniform1ui;
-        public static delegate* unmanaged[Cdecl]<int, int, byte, float*, void> UniformMatrix4fv;
-        public static delegate* unmanaged[Cdecl]<uint, void> UseProgram;
-        public static delegate* unmanaged[Cdecl]<uint, int, uint, byte, int, void*, void> VertexAttribPointer;
-        public static void CompileShader(uint shader, string source)
-        {
-            int length = source.Length;
-            byte* pSourceBytes = stackalloc byte[length];
-            System.Text.Encoding.ASCII.GetBytes(source, new Span<byte>(pSourceBytes, length));
-            byte* pSourcePtr = pSourceBytes;
-            glShaderSource(shader, 1, &pSourceBytes, &length);
-            glCompileShader(shader);
-            int status;
-            GetShaderiv(shader, OpenGL.GL_COMPILE_STATUS, &status);
-            if (status == 0)
-                throw new Exception(GetShaderInfoLog(shader));
-        }
-        private static string GetShaderInfoLog(uint shader)
-        {
-            var glGetShaderInfoLog = (delegate* unmanaged[Stdcall]<uint, int, int*, byte*, void>)Win32.GetProcAddress("glGetShaderInfoLog");
-            int logLength = 0;
-            GetShaderiv(shader, 0x8B84, &logLength); // 0x8B84 = GL_INFO_LOG_LENGTH
-            byte* pLog = stackalloc byte[logLength];
-            glGetShaderInfoLog(shader, logLength, null, pLog);
-            return Marshal.PtrToStringAnsi((IntPtr)pLog, logLength);
-        }
+        public static delegate* unmanaged[Stdcall]<uint, void> ActiveTexture;
+        public static delegate* unmanaged[Stdcall]<uint, uint, void> AttachShader;
+        public static delegate* unmanaged[Stdcall]<uint, uint, void> BindBuffer;
+        public static delegate* unmanaged[Stdcall]<uint, uint, uint, void> BindBufferBase;
+        public static delegate* unmanaged[Stdcall]<uint, uint, void> BindFramebuffer;
+        public static delegate* unmanaged[Stdcall]<uint, uint, void> BindRenderbuffer;
+        public static delegate* unmanaged[Stdcall]<uint, void> BindVertexArray;
+        public static delegate* unmanaged[Stdcall]<int, int, int, int, int, int, int, int, uint, uint, void> BlitFramebuffer;
+        public static delegate* unmanaged[Stdcall]<uint, nint, void*, uint, void> BufferData;
+        public static delegate* unmanaged[Stdcall]<uint, nint, nint, void*, void> BufferSubData;
+        private static delegate* unmanaged[Stdcall]<uint, void> glCompileShader;
+        public static delegate* unmanaged[Stdcall]<uint> CreateProgram;
+        public static delegate* unmanaged[Stdcall]<uint, uint> CreateShader;
+        public static delegate* unmanaged[Stdcall]<uint, uint, uint, void> DispatchCompute;
+        public static delegate* unmanaged[Stdcall]<uint, void> EnableVertexAttribArray;
+        public static delegate* unmanaged[Stdcall]<uint, uint, uint, uint, void> FramebufferRenderbuffer;
+        public static delegate* unmanaged[Stdcall]<int, uint*, void> GenBuffers;
+        public static delegate* unmanaged[Stdcall]<int, uint*, void> DeleteBuffers;
+        public static delegate* unmanaged[Stdcall]<int, uint*, void> GenFramebuffers;
+        public static delegate* unmanaged[Stdcall]<int, uint*, void> GenRenderbuffers;
+        public static delegate* unmanaged[Stdcall]<int, uint*, void> GenVertexArrays;
+        public static delegate* unmanaged[Stdcall]<uint, void> GenerateMipmap;
+        public static delegate* unmanaged[Stdcall]<uint, nint, nint, void*, void> GetBufferSubData;
+        public static delegate* unmanaged[Stdcall]<uint, uint, int*, void> GetShaderiv;
+        public static delegate* unmanaged[Stdcall]<uint, int, int*, uint*, void> GetAttachedShaders;
+        private static delegate* unmanaged[Stdcall]<uint, void> glLinkProgram;
+        public static delegate* unmanaged[Stdcall]<MemoryBarrierFlags, void> MemoryBarrier;
+        public static delegate* unmanaged[Stdcall]<uint, int, uint, int, int, void> RenderbufferStorageMultisample;
+        private static delegate* unmanaged[Stdcall]<uint, int, byte**, int*, void> glShaderSource;
+        public static delegate* unmanaged[Stdcall]<int, float, void> Uniform1f;
+        public static delegate* unmanaged[Stdcall]<int, int, void> Uniform1i;
+        public static delegate* unmanaged[Stdcall]<int, uint, void> Uniform1ui;
+        public static delegate* unmanaged[Stdcall]<int, int, byte, float*, void> UniformMatrix4fv;
+        public static delegate* unmanaged[Stdcall]<uint, void> UseProgram;
+        public static delegate* unmanaged[Stdcall]<uint, int, uint, byte, int, void*, void> VertexAttribPointer;
+        public static delegate* unmanaged[Stdcall]<uint, int, uint, void*, int, void> DrawElementsInstanced;
+        public static delegate* unmanaged[Stdcall]<byte, void> DepthMask;                       // core
+        public static delegate* unmanaged[Stdcall]<int, uint*, void> DrawBuffers;               // MRT
+        public static delegate* unmanaged[Stdcall]<uint, uint, uint, void> BlendFunci;          // per-attachment blend
+        public static delegate* unmanaged[Stdcall]<uint, uint, uint, uint, int, void> FramebufferTexture2D;
+        public static delegate* unmanaged[Stdcall]<uint, int, float*, void> ClearBufferfv;      // per-attachment clear
+
         private static void* GetCore(string csharpName)
         {
             return (void*)NativeLibrary.GetExport(OpenGlAsm, "gl" + csharpName);
@@ -129,46 +109,92 @@ namespace TGL
             Vertex2f = (delegate* unmanaged[Stdcall]<float, float, void>)GetCore("Vertex2f");
             Vertex3f = (delegate* unmanaged[Stdcall]<float, float, float, void>)GetCore("Vertex3f");
             Viewport = (delegate* unmanaged[Stdcall]<int, int, int, int, void>)GetCore("Viewport");
-            ActiveTexture = (delegate* unmanaged[Cdecl]<uint, void>)GetExt("ActiveTexture");
-            AttachShader = (delegate* unmanaged[Cdecl]<uint, uint, void>)GetExt("AttachShader");
-            BindBuffer = (delegate* unmanaged[Cdecl]<uint, uint, void>)GetExt("BindBuffer");
-            BindBufferBase = (delegate* unmanaged[Cdecl]<uint, uint, uint, void>)GetExt("BindBufferBase");
-            BindFramebuffer = (delegate* unmanaged[Cdecl]<uint, uint, void>)GetExt("BindFramebuffer");
-            BindRenderbuffer = (delegate* unmanaged[Cdecl]<uint, uint, void>)GetExt("BindRenderbuffer");
-            BindVertexArray = (delegate* unmanaged[Cdecl]<uint, void>)GetExt("BindVertexArray");
-            BlitFramebuffer = (delegate* unmanaged[Cdecl]<int, int, int, int, int, int, int, int, uint, uint, void>)GetExt("BlitFramebuffer");
-            BufferData = (delegate* unmanaged[Cdecl]<uint, nint, void*, uint, void>)GetExt("BufferData");
-            BufferSubData = (delegate* unmanaged[Cdecl]<uint, nint, nint, void*, void>)GetExt("BufferSubData");
-            glCompileShader = (delegate* unmanaged[Cdecl]<uint, void>)GetExt("CompileShader");
-            CheckFramebufferStatus = (delegate* unmanaged[Cdecl]<uint, uint>)GetExt("CheckFramebufferStatus");
-            CreateProgram = (delegate* unmanaged[Cdecl]<uint>)GetExt("CreateProgram");
-            CreateShader = (delegate* unmanaged[Cdecl]<uint, uint>)GetExt("CreateShader");
-            DeleteFramebuffers = (delegate* unmanaged[Cdecl]<int, uint*, void>)GetExt("DeleteFramebuffers");
-            DeleteRenderbuffers = (delegate* unmanaged[Cdecl]<int, uint*, void>)GetExt("DeleteRenderbuffers");
-            DispatchCompute = (delegate* unmanaged[Cdecl]<uint, uint, uint, void>)GetExt("DispatchCompute");
-            DrawBuffers = (delegate* unmanaged[Cdecl]<int, uint*, void>)GetExt("DrawBuffers");
-            EnableVertexAttribArray = (delegate* unmanaged[Cdecl]<uint, void>)GetExt("EnableVertexAttribArray");
-            FramebufferRenderbuffer = (delegate* unmanaged[Cdecl]<uint, uint, uint, uint, void>)GetExt("FramebufferRenderbuffer");
-            FramebufferTexture2D = (delegate* unmanaged[Cdecl]<uint, uint, uint, uint, int, void>)GetExt("FramebufferTexture2D");
-            GenBuffers = (delegate* unmanaged[Cdecl]<int, uint*, void>)GetExt("GenBuffers");
-            DeleteBuffers = (delegate* unmanaged[Cdecl]<int, uint*, void>)GetExt("DeleteBuffers");
-            GenFramebuffers = (delegate* unmanaged[Cdecl]<int, uint*, void>)GetExt("GenFramebuffers");
-            GenRenderbuffers = (delegate* unmanaged[Cdecl]<int, uint*, void>)GetExt("GenRenderbuffers");
-            GenVertexArrays = (delegate* unmanaged[Cdecl]<int, uint*, void>)GetExt("GenVertexArrays");
-            GenerateMipmap = (delegate* unmanaged[Cdecl]<uint, void>)GetExt("GenerateMipmap");
-            GetBufferSubData = (delegate* unmanaged[Cdecl]<uint, nint, nint, void*, void>)GetExt("GetBufferSubData");
-            GetShaderiv = (delegate* unmanaged[Cdecl]<uint, uint, int*, void>)GetExt("GetShaderiv");
-            GetAttachedShaders = (delegate* unmanaged[Cdecl]<uint, int, int*, uint*, void>)GetExt("GetAttachedShaders");
-            LinkProgram = (delegate* unmanaged[Cdecl]<uint, void>)GetExt("LinkProgram");
-            MemoryBarrier = (delegate* unmanaged[Cdecl]<MemoryBarrierFlags, void>)GetExt("MemoryBarrier");
-            RenderbufferStorageMultisample = (delegate* unmanaged[Cdecl]<uint, int, uint, int, int, void>)GetExt("RenderbufferStorageMultisample");
-            glShaderSource = (delegate* unmanaged[Cdecl]<uint, int, byte**, int*, void>)GetExt("ShaderSource");
-            Uniform1f = (delegate* unmanaged[Cdecl]<int, float, void>)GetExt("Uniform1f");
-            Uniform1i = (delegate* unmanaged[Cdecl]<int, int, void>)GetExt("Uniform1i");
-            Uniform1ui = (delegate* unmanaged[Cdecl]<int, uint, void>)GetExt("Uniform1ui");
-            UniformMatrix4fv = (delegate* unmanaged[Cdecl]<int, int, byte, float*, void>)GetExt("UniformMatrix4fv");
-            UseProgram = (delegate* unmanaged[Cdecl]<uint, void>)GetExt("UseProgram");
-            VertexAttribPointer = (delegate* unmanaged[Cdecl]<uint, int, uint, byte, int, void*, void>)GetExt("VertexAttribPointer");
+            ActiveTexture = (delegate* unmanaged[Stdcall]<uint, void>)GetExt("ActiveTexture");
+            AttachShader = (delegate* unmanaged[Stdcall]<uint, uint, void>)GetExt("AttachShader");
+            BindBuffer = (delegate* unmanaged[Stdcall]<uint, uint, void>)GetExt("BindBuffer");
+            BindBufferBase = (delegate* unmanaged[Stdcall]<uint, uint, uint, void>)GetExt("BindBufferBase");
+            BindFramebuffer = (delegate* unmanaged[Stdcall]<uint, uint, void>)GetExt("BindFramebuffer");
+            BindRenderbuffer = (delegate* unmanaged[Stdcall]<uint, uint, void>)GetExt("BindRenderbuffer");
+            BindVertexArray = (delegate* unmanaged[Stdcall]<uint, void>)GetExt("BindVertexArray");
+            BlitFramebuffer = (delegate* unmanaged[Stdcall]<int, int, int, int, int, int, int, int, uint, uint, void>)GetExt("BlitFramebuffer");
+            BufferData = (delegate* unmanaged[Stdcall]<uint, nint, void*, uint, void>)GetExt("BufferData");
+            BufferSubData = (delegate* unmanaged[Stdcall]<uint, nint, nint, void*, void>)GetExt("BufferSubData");
+            glCompileShader = (delegate* unmanaged[Stdcall]<uint, void>)GetExt("CompileShader");
+            CreateProgram = (delegate* unmanaged[Stdcall]<uint>)GetExt("CreateProgram");
+            CreateShader = (delegate* unmanaged[Stdcall]<uint, uint>)GetExt("CreateShader");
+            DispatchCompute = (delegate* unmanaged[Stdcall]<uint, uint, uint, void>)GetExt("DispatchCompute");
+            EnableVertexAttribArray = (delegate* unmanaged[Stdcall]<uint, void>)GetExt("EnableVertexAttribArray");
+            FramebufferRenderbuffer = (delegate* unmanaged[Stdcall]<uint, uint, uint, uint, void>)GetExt("FramebufferRenderbuffer");
+            GenBuffers = (delegate* unmanaged[Stdcall]<int, uint*, void>)GetExt("GenBuffers");
+            DeleteBuffers = (delegate* unmanaged[Stdcall]<int, uint*, void>)GetExt("DeleteBuffers");
+            GenFramebuffers = (delegate* unmanaged[Stdcall]<int, uint*, void>)GetExt("GenFramebuffers");
+            GenRenderbuffers = (delegate* unmanaged[Stdcall]<int, uint*, void>)GetExt("GenRenderbuffers");
+            GenVertexArrays = (delegate* unmanaged[Stdcall]<int, uint*, void>)GetExt("GenVertexArrays");
+            GenerateMipmap = (delegate* unmanaged[Stdcall]<uint, void>)GetExt("GenerateMipmap");
+            GetBufferSubData = (delegate* unmanaged[Stdcall]<uint, nint, nint, void*, void>)GetExt("GetBufferSubData");
+            GetShaderiv = (delegate* unmanaged[Stdcall]<uint, uint, int*, void>)GetExt("GetShaderiv");
+            GetAttachedShaders = (delegate* unmanaged[Stdcall]<uint, int, int*, uint*, void>)GetExt("GetAttachedShaders");
+            glLinkProgram = (delegate* unmanaged[Stdcall]<uint, void>)GetExt("LinkProgram");
+            MemoryBarrier = (delegate* unmanaged[Stdcall]<MemoryBarrierFlags, void>)GetExt("MemoryBarrier");
+            RenderbufferStorageMultisample = (delegate* unmanaged[Stdcall]<uint, int, uint, int, int, void>)GetExt("RenderbufferStorageMultisample");
+            glShaderSource = (delegate* unmanaged[Stdcall]<uint, int, byte**, int*, void>)GetExt("ShaderSource");
+            Uniform1f = (delegate* unmanaged[Stdcall]<int, float, void>)GetExt("Uniform1f");
+            Uniform1i = (delegate* unmanaged[Stdcall]<int, int, void>)GetExt("Uniform1i");
+            Uniform1ui = (delegate* unmanaged[Stdcall]<int, uint, void>)GetExt("Uniform1ui");
+            UniformMatrix4fv = (delegate* unmanaged[Stdcall]<int, int, byte, float*, void>)GetExt("UniformMatrix4fv");
+            UseProgram = (delegate* unmanaged[Stdcall]<uint, void>)GetExt("UseProgram");
+            VertexAttribPointer = (delegate* unmanaged[Stdcall]<uint, int, uint, byte, int, void*, void>)GetExt("VertexAttribPointer");
+            DrawElementsInstanced = (delegate* unmanaged[Stdcall]<uint, int, uint, void*, int, void>)GetExt("DrawElementsInstanced");
+            DepthMask = (delegate* unmanaged[Stdcall]<byte, void>)GetCore("DepthMask");
+            DrawBuffers = (delegate* unmanaged[Stdcall]<int, uint*, void>)GetExt("DrawBuffers");
+            BlendFunci = (delegate* unmanaged[Stdcall]<uint, uint, uint, void>)GetExt("BlendFunci");
+            FramebufferTexture2D = (delegate* unmanaged[Stdcall]<uint, uint, uint, uint, int, void>)GetExt("FramebufferTexture2D");
+            ClearBufferfv = (delegate* unmanaged[Stdcall]<uint, int, float*, void>)GetExt("ClearBufferfv");
+        }
+
+        public static void CompileShader(uint shader, string source)
+        {
+            int length = source.Length;
+            byte* pSourceBytes = stackalloc byte[length];
+            System.Text.Encoding.ASCII.GetBytes(source, new Span<byte>(pSourceBytes, length));
+            byte* pSourcePtr = pSourceBytes;
+            glShaderSource(shader, 1, &pSourceBytes, &length);
+            glCompileShader(shader);
+            int status = 0;
+            GetShaderiv(shader, OpenGL.GL_COMPILE_STATUS, &status);
+            if (status == 0)
+                throw new Exception(GetShaderInfoLog(shader));
+        }
+
+        public static void LinkProgram(uint program)
+        {
+            glLinkProgram(program);
+            var glGetProgramiv = (delegate* unmanaged[Stdcall]<uint, uint, int*, void>)Win32.GetProcAddress("glGetProgramiv");
+            int status = 0;
+            glGetProgramiv(program, GL_LINK_STATUS, &status);
+            if (status == 0)
+                throw new Exception(GetProgramInfoLog(program));
+        }
+
+        private static string GetProgramInfoLog(uint program)
+        {
+            var glGetProgramiv = (delegate* unmanaged[Stdcall]<uint, uint, int*, void>)Win32.GetProcAddress("glGetProgramiv");
+            var glGetProgramInfoLog = (delegate* unmanaged[Stdcall]<uint, int, int*, byte*, void>)Win32.GetProcAddress("glGetProgramInfoLog");
+            int logLength = 0;
+            glGetProgramiv(program, GL_INFO_LOG_LENGTH, &logLength);
+            byte* pLog = stackalloc byte[logLength];
+            glGetProgramInfoLog(program, logLength, null, pLog);
+            return Marshal.PtrToStringAnsi((IntPtr)pLog, logLength);
+        }
+
+        private static string GetShaderInfoLog(uint shader)
+        {
+            var glGetShaderInfoLog = (delegate* unmanaged[Stdcall]<uint, int, int*, byte*, void>)Win32.GetProcAddress("glGetShaderInfoLog");
+            int logLength = 0;
+            GetShaderiv(shader, 0x8B84, &logLength); // 0x8B84 = GL_INFO_LOG_LENGTH
+            byte* pLog = stackalloc byte[logLength];
+            glGetShaderInfoLog(shader, logLength, null, pLog);
+            return Marshal.PtrToStringAnsi((IntPtr)pLog, logLength);
         }
 
         //  Constants
@@ -188,6 +214,27 @@ namespace TGL
         public const uint GL_BGR = 0x80E0;
         public const uint GL_BGRA = 0x80E1;
         public const uint GL_RGB8 = 0x8051;
+        public const uint GL_RGBA = 0x1908;
+        public const uint GL_RGBA8 = 0x8058;
+        public const uint GL_TEXTURE_MAG_FILTER = 0x2800;
+        public const uint GL_TEXTURE_MIN_FILTER = 0x2801;
+        public const uint GL_TEXTURE_WRAP_S = 0x2802;
+        public const uint GL_TEXTURE_WRAP_T = 0x2803;
+        public const uint GL_REPEAT = 0x2901;
+        public const uint GL_CLAMP_TO_EDGE = 0x812F;
+        public const uint GL_LINEAR_MIPMAP_LINEAR = 0x2703;
+        // WBOIT render targets / framebuffer
+        public const uint GL_RGBA16F = 0x881A;
+        public const uint GL_R16F = 0x822D;
+        public const uint GL_R8 = 0x8229;
+        public const uint GL_HALF_FLOAT = 0x140B;
+        public const uint GL_RED = 0x1903;
+        public const uint GL_DEPTH_COMPONENT = 0x1902;
+        public const uint GL_DEPTH_COMPONENT24 = 0x81A6;
+        public const uint GL_DEPTH_ATTACHMENT = 0x8D00;
+        public const uint GL_COLOR_ATTACHMENT1 = 0x8CE1;
+        public const uint GL_COLOR_ATTACHMENT2 = 0x8CE2;
+        public const uint GL_COLOR = 0x1800;   // ClearBufferfv buffer enum
         public const uint GL_STATIC_DRAW = 0x88E4;
         public const uint GL_DYNAMIC_DRAW = 0x88E8;
         public const uint GL_DYNAMIC_COPY = 0x88EA;
@@ -195,8 +242,11 @@ namespace TGL
         public const uint GL_VERTEX_SHADER = 0x8B31;
         public const uint GL_COMPUTE_SHADER = 0x91B9;
         public const uint GL_COMPILE_STATUS = 0x8B81;
+        public const uint GL_LINK_STATUS = 0x8B82;
         public const uint GL_INFO_LOG_LENGTH = 0x8B84;
         public const uint GL_ARRAY_BUFFER = 0x8892;
+        public const uint GL_ELEMENT_ARRAY_BUFFER = 0x8893;
+        public const uint GL_UNSIGNED_INT = 0x1405;
         public const uint GL_UNIFORM_BUFFER = 0x8A11;
         public const uint GL_SHADER_STORAGE_BUFFER = 0x90D2;
         public const uint GL_MULTISAMPLE = 0x809D;
@@ -207,15 +257,6 @@ namespace TGL
         public const uint GL_COLOR_ATTACHMENT0 = 0x8CE0;
         public const uint GL_DEPTH_STENCIL_ATTACHMENT = 0x821A;
         public const uint GL_DEPTH24_STENCIL8 = 0x88F0;
-        public const uint GL_DEPTH_COMPONENT24 = 0x81A6;
-        public const uint GL_RGBA = 0x1908;
-        public const uint GL_RED = 0x1903;
-        public const uint GL_RGBA16F = 0x881A;
-        public const uint GL_R8 = 0x8229;
-        public const uint GL_HALF_FLOAT = 0x140B;
-        public const uint GL_COLOR_ATTACHMENT1 = 0x8CE1;
-        public const uint GL_DEPTH_ATTACHMENT = 0x8D00;
-        public const uint GL_FRAMEBUFFER_COMPLETE = 0x8CD5;
         //   DataType
         public const uint GL_BYTE = 0x1400;
         public const uint GL_UNSIGNED_BYTE = 0x1401;
@@ -255,8 +296,6 @@ namespace TGL
         //  Mag filters
         public const uint GL_NEAREST = 0x2600;
         public const uint GL_LINEAR = 0x2601;
-        public const uint GL_TEXTURE_MAG_FILTER = 0x2800;
-        public const uint GL_TEXTURE_MIN_FILTER = 0x2801;
         //  WGL Context
         public const uint WGL_DRAW_TO_WINDOW = 0x2001;
         public const uint WGL_DRAW_TO_BITMAP = 0x2002;
