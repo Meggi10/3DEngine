@@ -9,6 +9,10 @@
 	<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="Resources\compositeFragment.glsl" />
+    <None Remove="Resources\compositeVertex.glsl" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Update="TGLView.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -16,9 +20,11 @@
     <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\vertexShader.glsl.c" />
+    <EmbeddedResource Include="Resources\compositeFragment.glsl" />
+    <EmbeddedResource Include="Resources\compositeVertex.glsl" />
+    <EmbeddedResource Include="Resources\vertexShader.glsl" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\fragShader.glsl.c" />
+    <EmbeddedResource Include="Resources\fragShader.glsl" />
   </ItemGroup>
 </Project>

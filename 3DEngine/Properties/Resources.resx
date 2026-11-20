@@ -119,9 +119,9 @@
   </resheader>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
   <data name="fragShader.glsl" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\fragShader.glsl.c;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;windows-1250</value>
+    <value>..\Resources\fragShader.glsl;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;windows-1250</value>
   </data>
   <data name="vertexShader.glsl" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\vertexShader.glsl.c;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;windows-1250</value>
+    <value>..\Resources\vertexShader.glsl;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;windows-1250</value>
   </data>
 </root>
