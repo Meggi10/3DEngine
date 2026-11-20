@@ -19,6 +19,7 @@ namespace Diablo3DEngine
         TObject3D Selected;
         Point StartPos;
         TGLContext Context = new TGLContext();
+        TLight Light = new TLight();
         public Form1()
         {
             InitializeComponent();
@@ -28,6 +29,8 @@ namespace Diablo3DEngine
             tglView1.Context.Camera.Parent = Scene.Root;
             Selected = cube;
             tglView1.MouseWheel += TglView1_MouseWheel;
+            Light.Origin = new Vector3(0, 0, 1);
+            Light.Parent = Scene.Root;
         }
 
         private void TglView1_MouseWheel(object sender, MouseEventArgs e)
