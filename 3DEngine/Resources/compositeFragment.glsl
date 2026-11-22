@@ -1,4 +1,7 @@
 ﻿#version 430 core
+//#define FXAA_REDUCE_MIN (1.0 / 128.0)
+//#define FXAA_REDUCE_MUL (1.0 / 8.0)
+//#define FXAA_SPAN_MAX   8.0
 
 in vec2 vUv;
 layout(binding = 0) uniform sampler2D OpaqueTex;
@@ -6,10 +9,6 @@ layout(binding = 1) uniform sampler2D AccumTex;
 layout(binding = 2) uniform sampler2D RevealTex;
 
 out vec4 outColor;
-
-//#define FXAA_REDUCE_MIN (1.0 / 128.0)
-//#define FXAA_REDUCE_MUL (1.0 / 8.0)
-//#define FXAA_SPAN_MAX   8.0
 
 // Weighted-blended OIT resolve: avg = accum.rgb / accum.a, final = opaque * reveal + avg * (1 - reveal).vec3 resolve(vec2 uv)
 void main()
