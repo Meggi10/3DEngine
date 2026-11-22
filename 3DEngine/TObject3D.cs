@@ -274,6 +274,8 @@ namespace Diablo3DEngine
                             triangle.UV.Add(face.UV[i]);
                         }
                         triangle.Material = face.Material;
+                        // Łatka, która zapewne tylko maskuje inne błędy, ale nie rozwiązuje realnego problemu
+                        //triangle.ComputeTangents();
                         map.Faces.Add(triangle);
                     }
             }
