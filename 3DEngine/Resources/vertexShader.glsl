@@ -44,9 +44,11 @@ void main()
     }
     else
         pos = worldTransform * pos;
-	gl_Position = pos;
-	fragNormal = transpose(inverse(normalMatrix)) * vertNormal;
-	fragTangent = normalMatrix * vertTangent;
-	fragBitangent = normalMatrix * vertBitangent;
-	fragUV = vertUV;
+
+    gl_Position = pos;
+    fragCoords = pos.xyz;
+    fragNormal = transpose(inverse(normalMatrix)) * vertNormal;
+    fragTangent = normalMatrix * vertTangent;
+    fragBitangent = normalMatrix * vertBitangent;
+    fragUV = vertUV;
 }
