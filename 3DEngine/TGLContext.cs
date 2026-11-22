@@ -177,19 +177,14 @@ namespace Diablo3DEngine
 
             uint* buffers = stackalloc uint[] 
             {
-        OpenGL.GL_COLOR_ATTACHMENT0,
-        OpenGL.GL_COLOR_ATTACHMENT1,
-        OpenGL.GL_COLOR_ATTACHMENT2
-    };
+                OpenGL.GL_COLOR_ATTACHMENT0,
+                OpenGL.GL_COLOR_ATTACHMENT1,
+                OpenGL.GL_COLOR_ATTACHMENT2
+            };
             OpenGL.DrawBuffers(3, buffers);
-
-            //if (OpenGL.CheckFramebufferStatus(OpenGL.GL_FRAMEBUFFER) != OpenGL.GL_FRAMEBUFFER_COMPLETE)
-            //    throw new Exception("Błąd inicjalizacji WOIT Framebuffer!");
-
             OpenGL.BindFramebuffer(OpenGL.GL_FRAMEBUFFER, 0);
         }
 
-        //Check helper method!
         public void EnsureWoit()
         {
             int w = View.Width;
@@ -330,6 +325,7 @@ namespace Diablo3DEngine
                 }
                 else
                     buffer[start + 3] = 1;
+                //position = Vector3.Normalize(new Vector3(0.3f, 0.5f, -1f));
                 //Array.Copy(position.Data, 0, buffer, start, 3);
                 buffer[start] = position.X;
                 buffer[start + 1] = position.Y;
@@ -444,7 +440,8 @@ namespace Diablo3DEngine
                     LoadTexture(map.Material.Textures[i], (uint)i);
                     OpenGL.Uniform1i(uniformLoc++, i);
                 }
-                //OpenGL.Uniform4f(uniformLoc++, map.Material.SpecularMap.Color);
+                OpenGL.Uniform1f(uniformLoc++, map.Material.Shininess); //???
+                //OpenGL.Uniform4f(uniformLoc++, map.Material.SpecularMap.Color); //???
             }
             int boneCount = Math.Min(obj.Bones.Count, MAX_BONE_MATRICES);
             var boneMatrix = new Matrix4x4[Math.Max(boneCount, 1)];
