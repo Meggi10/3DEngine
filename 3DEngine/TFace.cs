@@ -64,5 +64,22 @@ namespace Diablo3DEngine
             Vertices.Add(v);
             v.Faces.Add(this);
         }
+        public void ComputeTangents()
+        {
+            Tangent = Bitangent = Vector3.Zero;
+            if (UV.Count < 3 || Vertices.Count < 3) return;
+
+            var e1 = Vertices[0].Coords - Vertices[1].Coords;
+            var e2 = Vertices[2].Coords - Vertices[1].Coords;
+            var d1 = UV[0] - UV[1];
+            var d2 = UV[2] - UV[1];
+
+            float det = d1.X * d2.Y - d2.X * d1.Y;
+            if (MathF.Abs(det) < 1e-12f) return;   // zdegenerowane UV: zostaje 0, shader użyje normalnej wierzchołka
+
+            float r = 1f / det;
+            Tangent = (e1 * d2.Y - e2 * d1.Y) * r;
+            Bitangent = (e2 * d1.X - e1 * d2.X) * r;
+        }
     }
 }
