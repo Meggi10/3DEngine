@@ -1,6 +1,6 @@
 #version 430 core
 
-in vec3 fragCoords; // DODANE: pozycja wierzcho³ka w przestrzeni œwiata (z Vertex Shadera)
+in vec3 fragCoords;
 in vec3 fragNormal;
 in vec3 fragTangent;
 in vec3 fragBitangent;
@@ -29,6 +29,7 @@ layout(std140, binding = 0) uniform Camera
     mat4 ViewProjectionMatrix;
     vec3 CameraPos;
 };
+
 const int MAX_LIGHTS = 10; 
 layout(std140, binding = 2) uniform Lights
 {
@@ -51,22 +52,22 @@ void main()
 
 	vec3 matSpecular = texture(material.SpecularMap, fragUV).rgb;
 
-	// --- 1. NORMAL MAPPING ---
-	// Odczyt normalnej z mapy i przeskalowanie z [0, 1] do [-1, 1]
-	vec3 normal = texture(material.NormalMap, fragUV).rgb;
-	normal = normalize(normal * 2.0 - 1.0);
+    // --- 1. NORMAL MAPPING ---
+    // Odczyt normalnej z mapy i przeskalowanie z [0, 1] do [-1, 1]
+    vec3 normal = texture(material.NormalMap, fragUV).rgb;
+    normal = normalize(normal * 2.0 - 1.0);
 
-	// Macierz TBN przekszta³caj¹ca z przestrzeni stycznej (Tangent) do przestrzeni œwiata
-	mat3 TBN = mat3(normalize(fragTangent), normalize(fragBitangent), normalize(fragNormal));
-    //vec3 N = normalize(TBN * normal);
-    vec3 N = normal;
+    // Macierz TBN przekszta³caj¹ca z przestrzeni stycznej (Tangent) do przestrzeni œwiata
+    mat3 TBN = mat3(normalize(fragTangent), normalize(fragBitangent), normalize(fragNormal));
+    vec3 N = normalize(TBN * normal); //To check out!
+    //vec3 N = normal; //test
 
-	vec3 finalColor = vec3(0);
+    vec3 finalColor = vec3(0);
 	// --- 2. MODEL OŒWIETLENIA BUI TUONG PHONGA ---
 	for (int i = 0; i < LightsCount; i++)
 	{
 		Light light = lights[i];
-		vec3 L = light.Position.xyz;
+        vec3 L = light.Position.xyz;
         float attenuation = 1;
         if (light.Position.w > 0)
         {
@@ -84,17 +85,18 @@ void main()
 
         // Sk³adowa rozproszona (Diffuse)
         float diff = max(dot(N, L), 0.0);
+        //float diff = abs(dot(N, L)); //test
         vec3 diffuse = light.DiffuseLight * diff * matDiffuse.rgb;
 
         // Sk³adowa lustrzana (Specular)
         float spec = pow(max(dot(V, R), 0.0), max(material.Shininess, 1.0));
         vec3 specular = light.SpecularLight * spec * matSpecular;
-        finalColor += ambient + (diffuse + specular); // attenuation;
+        finalColor += ambient + (diffuse + specular) / attenuation;
         //finalColor = matDiffuse.rgb;
     }
 	float alpha = matDiffuse.a;
     // Tymczasowo zamiast oœwietlenia:
-    //finalColor = matDiffuse.rgb;
+    //finalColor = matDiffuse.rgb;                        // wynik koñcowy z map¹
 
     // --- 3. OBLICZENIA WOIT (McGuire & Bavoil) ---
     // Funkcja wagi zale¿na od g³êbi (gl_FragCoord.z) i przezroczystoœci (alpha)
