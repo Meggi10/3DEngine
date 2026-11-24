@@ -325,7 +325,6 @@ namespace Diablo3DEngine
                 }
                 else
                     buffer[start + 3] = 1;
-                //position = Vector3.Normalize(new Vector3(0.3f, 0.5f, -1f));
                 //Array.Copy(position.Data, 0, buffer, start, 3);
                 buffer[start] = position.X;
                 buffer[start + 1] = position.Y;
@@ -385,6 +384,22 @@ namespace Diablo3DEngine
                 for (int i = 0; i < map.Faces.Count; i++)
                 {
                     var face = map.Faces[i];
+                    //to check if this is a right fix!
+                    Vector3 tangent = Vector3.Zero, bitangent = Vector3.Zero;
+                    if (face.UV.Count >= 3 && face.Vertices.Count >= 3)
+                    {
+                        var e1 = face.Vertices[1].Coords - face.Vertices[0].Coords;
+                        var e2 = face.Vertices[2].Coords - face.Vertices[0].Coords;
+                        var d1 = face.UV[1] - face.UV[0];
+                        var d2 = face.UV[2] - face.UV[0];
+                        float det = d1.X * d2.Y - d2.X * d1.Y;
+                        if (Math.Abs(det) > 1e-8f)
+                        {
+                            float r = 1f / det;
+                            tangent = Vector3.Normalize((e1 * d2.Y - e2 * d1.Y) * r);
+                            bitangent = Vector3.Normalize((e2 * d1.X - e1 * d2.X) * r);
+                        }
+                    }
                     for (int j = 0; j < face.Vertices.Count; j++)
                     {
                         var vertex = face.Vertices[j];
@@ -393,8 +408,8 @@ namespace Diablo3DEngine
                         element.Normal = face.IsFlat ? face.Normal : vertex.Normal;
                         if (face.UV.Count > 0)
                         {
-                            element.Tangent = face.Tangent;
-                            element.Bitangent = face.Bitangent;
+                            element.Tangent = tangent; //face.Tangent;
+                            element.Bitangent = bitangent; //face.Bitangent;
                             element.UV = face.UV[j];
                         }
                         element.Bones = new Vector4();
@@ -440,8 +455,7 @@ namespace Diablo3DEngine
                     LoadTexture(map.Material.Textures[i], (uint)i);
                     OpenGL.Uniform1i(uniformLoc++, i);
                 }
-                OpenGL.Uniform1f(uniformLoc++, map.Material.Shininess); //???
-                //OpenGL.Uniform4f(uniformLoc++, map.Material.SpecularMap.Color); //???
+                //OpenGL.Uniform4f(uniformLoc++, map.Material.SpecularMap.Color);
             }
             int boneCount = Math.Min(obj.Bones.Count, MAX_BONE_MATRICES);
             var boneMatrix = new Matrix4x4[Math.Max(boneCount, 1)];
