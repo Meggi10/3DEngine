@@ -23,13 +23,11 @@ struct Light {
 
 layout(location = 1) uniform Material material;
 layout(location = 5) uniform int uOIT;
-
 layout(std140, binding = 0) uniform Camera
 {
     mat4 ViewProjectionMatrix;
     vec3 CameraPos;
 };
-
 const int MAX_LIGHTS = 10; 
 layout(std140, binding = 2) uniform Lights
 {
@@ -54,13 +52,39 @@ void main()
 
     // --- 1. NORMAL MAPPING ---
     // Odczyt normalnej z mapy i przeskalowanie z [0, 1] do [-1, 1]
+    //vec3 normal = texture(material.NormalMap, fragUV).rgb;
+    //normal = normalize(normal * 2.0 - 1.0);
+
+    // --- 1. NORMAL MAPPING V2 - to check! ---
     vec3 normal = texture(material.NormalMap, fragUV).rgb;
     normal = normalize(normal * 2.0 - 1.0);
 
+    vec3 Nv = normalize(fragNormal);
+    vec3 N;
+    if (dot(fragTangent, fragTangent) < 1e-8 || dot(fragBitangent, fragBitangent) < 1e-8)
+    {
+        // brak tangentów -> zwyk³a normalna zamiast normal mapy
+        N = Nv;
+    }
+    else
+    {
+        //mat3 TBN = mat3(normalize(fragTangent), normalize(fragBitangent), Nv);
+        //N = normalize(TBN * normal);
+        vec3 T = normalize(fragTangent);
+        T = normalize(T - dot(T, Nv) * Nv);          // Gram-Schmidt: T prostopad³e do Nv
+        vec3 B = cross(Nv, T);                       // B prostopad³e do obu
+        if (dot(B, fragBitangent) < 0.0) B = -B;     // zachowaj orientacjê (lustrzane UV)
+        mat3 TBN = mat3(T, B, Nv);
+        N = normalize(TBN * normal);
+    }
+
+    if (!gl_FrontFacing) N = -N;
+
     // Macierz TBN przekszta³caj¹ca z przestrzeni stycznej (Tangent) do przestrzeni œwiata
-    mat3 TBN = mat3(normalize(fragTangent), normalize(fragBitangent), normalize(fragNormal));
-    vec3 N = normalize(TBN * normal); //To check out!
-    //vec3 N = normal; //test
+    //mat3 TBN = mat3(normalize(fragTangent), normalize(fragBitangent), normalize(fragNormal));
+    //vec3 N = normalize(TBN * normal);
+    //vec3 N = normalize(fragNormal); //test
+    //N = Nv;
 
     vec3 finalColor = vec3(0);
 	// --- 2. MODEL OŒWIETLENIA BUI TUONG PHONGA ---
@@ -76,6 +100,8 @@ void main()
             L /= d;
             attenuation = light.AttCoeff.x + light.AttCoeff.y * d + light.AttCoeff.z * d * d;
         }
+        else L = -L; //TODO: konflikt znaków (znosz¹ siê) do dalszych poprawek!
+
         //vec3 L = normalize(lightDir - fragCoords); // Kierunek do œwiat³a
         vec3 V = normalize(CameraPos - fragCoords);        // Kierunek do kamery
         vec3 R = reflect(-L, N);                      // Odbicie œwiat³a (klasyczny Phong)
@@ -85,7 +111,6 @@ void main()
 
         // Sk³adowa rozproszona (Diffuse)
         float diff = max(dot(N, L), 0.0);
-        //float diff = abs(dot(N, L)); //test
         vec3 diffuse = light.DiffuseLight * diff * matDiffuse.rgb;
 
         // Sk³adowa lustrzana (Specular)
@@ -93,10 +118,19 @@ void main()
         vec3 specular = light.SpecularLight * spec * matSpecular;
         finalColor += ambient + (diffuse + specular) / attenuation;
         //finalColor = matDiffuse.rgb;
+
+        //finalColor = vec3(max(dot(N, L), 0.0));          // test wariant 1
+        //finalColor = vec3(max(dot(N, -L), 0.0));       // test wariant 2
     }
-	float alpha = matDiffuse.a;
+    float alpha = matDiffuse.a;
     // Tymczasowo zamiast oœwietlenia:
     //finalColor = matDiffuse.rgb;                        // wynik koñcowy z map¹
+    //finalColor = normalize(fragNormal) * 0.5 + 0.5; //test wektorów N
+    //finalColor = normalize(fragTangent) * 0.5 + 0.5; //test tangent
+    //finalColor = texture(material.NormalMap, fragUV).rgb; //test mapa normalnych
+    //finalColor = N * 0.5 + 0.5; //test
+    //finalColor = fragTangent * 0.5 + 0.5; //test tangent
+    //finalColor = normalize(fragNormal) * 0.5 + 0.5; // test dla szeœcianu
 
     // --- 3. OBLICZENIA WOIT (McGuire & Bavoil) ---
     // Funkcja wagi zale¿na od g³êbi (gl_FragCoord.z) i przezroczystoœci (alpha)
