@@ -29,7 +29,8 @@ namespace Diablo3DEngine
             tglView1.Context.Camera.Parent = Scene.Root;
             Selected = cube;
             tglView1.MouseWheel += TglView1_MouseWheel;
-            Light.Origin = new Vector3(0, 0, 1);
+            Light.Origin = new Vector3(0, 0, -1);
+            Light.IsDirectional = true;
             Light.Parent = Scene.Root;
         }
 
