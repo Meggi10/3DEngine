@@ -23,25 +23,26 @@ namespace Diablo3DEngine
         public Matrix4x4 BindPoseInv = new Matrix4x4();
         public TLight Light;
         public string Name;
-        bool? opaque;
-        public bool? Opaque
-        {
-            get
-            {
-                if (opaque == null)
-                {
-                    opaque = true;
-                    foreach (var mat in Materials)
-                        if (mat.Transparency < 1)
-                        {
-                            opaque = false;
-                            break;
-                        }
-                }
-                return opaque;
-            }
-            set { opaque = value; }
-        }
+        public bool Opaque = true;
+        //bool? opaque;
+        //public bool? Opaque
+        //{
+        //    get
+        //    {
+        //        if (opaque == null)
+        //        {
+        //            opaque = true;
+        //            foreach (var mat in Materials)
+        //                if (mat.Transparency < 1)
+        //                {
+        //                    opaque = false;
+        //                    break;
+        //                }
+        //        }
+        //        return opaque;
+        //    }
+        //    set { opaque = value; }
+        //}
         public TObject3D Root
         {
             get
