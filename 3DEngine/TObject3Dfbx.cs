@@ -398,7 +398,7 @@ namespace Diablo3DEngine
         void ReadMaterial(TNode node)
         {
             node.ID = node.ReadLong();
-            var mat = new TMaterial();
+            var mat = TMaterial.CreateFrom(DefMaterial);
             Materials.Add(mat);
             mat.Name = node.ReadString();
             mat.Name = mat.Name.Split('\0')[0];
@@ -463,7 +463,7 @@ namespace Diablo3DEngine
                 case "Opacity":
                     {
                         var material = node.Owner as TMaterial;
-                        material.Transparency = 1f - (float)node.ReadDouble();
+                        material.Transparency = (float)node.ReadDouble();
                         break;
                     }
                 case "Lcl Scaling":
@@ -587,6 +587,8 @@ namespace Diablo3DEngine
                     if (idx < dstObj.Maps.Count)
                         dstObj.Maps[idx].Material = srcMat;
                 }
+                if (srcMat.Transparency < 1)
+                    dstObj.Opaque = false; 
             }
             else if (src is string texPath && dst is TMaterial)
             {
