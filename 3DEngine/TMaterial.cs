@@ -4,6 +4,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -16,11 +17,16 @@ namespace Diablo3DEngine
         public TTexture SpecularMap = new TTexture();
         public TTexture NormalMap = new TTexture();
         public TTexture[] Textures;
-        public float Transparency = 1f;
-        public Color TransparentColor;
-        public float Shininess;
-        public float Reflectivity;
+        public float Transparency {  get; set; } = 1.0f;
+        public Color TransparentColor { get; set; }
+        public float Shininess { get; set; }
+        public float Reflectivity { get; set; }
 
+        public static TMaterial CreateFrom(TMaterial src)
+        {
+            string code = JsonSerializer.Serialize(src);
+            return JsonSerializer.Deserialize<TMaterial>(code);
+        }
         public class TTexture
         {
             public Color Color;
@@ -35,6 +41,7 @@ namespace Diablo3DEngine
                 }
             }
             public int DisplayList;
+            public bool IsOpaque = true;
             public Bitmap Texture
             {
                 get
