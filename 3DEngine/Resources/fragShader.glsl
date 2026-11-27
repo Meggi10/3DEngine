@@ -45,8 +45,8 @@ void main()
 	vec4 matDiffuse = texture(material.DiffuseMap, fragUV);
 
 	// Odrzucenie ca³kowicie przezroczystych pikseli (opcjonalne w WOIT, ale przyspiesza renderowanie)
-	if (matDiffuse.a < 0.01)
-		discard;
+	//if (matDiffuse.a < 0.01)
+	//	discard;
 
 	vec3 matSpecular = texture(material.SpecularMap, fragUV).rgb;
 
@@ -97,10 +97,11 @@ void main()
         {
             L -= fragCoords;
             float d = length(L);
-            L /= d;
+            //L /= d;
             attenuation = light.AttCoeff.x + light.AttCoeff.y * d + light.AttCoeff.z * d * d;
         }
-        else L = -L; //TODO: konflikt znaków (znosz¹ siê) do dalszych poprawek!
+        //else L = -L; //TODO: konflikt znaków (znosz¹ siê) do dalszych poprawek!
+        L = normalize(L);
 
         //vec3 L = normalize(lightDir - fragCoords); // Kierunek do œwiat³a
         vec3 V = normalize(CameraPos - fragCoords);        // Kierunek do kamery
@@ -116,7 +117,7 @@ void main()
         // Sk³adowa lustrzana (Specular)
         float spec = pow(max(dot(V, R), 0.0), max(material.Shininess, 1.0));
         vec3 specular = light.SpecularLight * spec * matSpecular;
-        finalColor += ambient + (diffuse + specular) / attenuation;
+        finalColor += ambient + (diffuse + specular);// / attenuation;
         //finalColor = matDiffuse.rgb;
 
         //finalColor = vec3(max(dot(N, L), 0.0));          // test wariant 1
