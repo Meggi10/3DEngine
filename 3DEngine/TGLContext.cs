@@ -40,6 +40,7 @@ namespace Diablo3DEngine
         uint RenderProgram, CompositeProgram;
         uint VAO;
         uint DepthRenderbuffer;
+        uint DepthTexture;
 
         public void CreateHandle()
         {
@@ -152,7 +153,7 @@ namespace Diablo3DEngine
             OpenGL.GenTextures(1, &tex);
             AccumTexture = tex;
             OpenGL.BindTexture(OpenGL.GL_TEXTURE_2D, AccumTexture);
-            OpenGL.TexImage2D(OpenGL.GL_TEXTURE_2D, 0, (int)OpenGL.GL_RGBA16F, width, height, 0, OpenGL.GL_RGBA, OpenGL.GL_HALF_FLOAT, null);
+            OpenGL.TexImage2D(OpenGL.GL_TEXTURE_2D, 0, (int)OpenGL.GL_RGBA16F, width, height, 0, OpenGL.GL_RGBA, OpenGL.GL_FLOAT, null);
             OpenGL.TexParameteri(OpenGL.GL_TEXTURE_2D, OpenGL.GL_TEXTURE_MIN_FILTER, (int)OpenGL.GL_LINEAR);
             OpenGL.TexParameteri(OpenGL.GL_TEXTURE_2D, OpenGL.GL_TEXTURE_MAG_FILTER, (int)OpenGL.GL_LINEAR);
             OpenGL.FramebufferTexture2D(OpenGL.GL_FRAMEBUFFER, OpenGL.GL_COLOR_ATTACHMENT1, OpenGL.GL_TEXTURE_2D, AccumTexture, 0);
@@ -161,7 +162,7 @@ namespace Diablo3DEngine
             OpenGL.GenTextures(1, &tex);
             RevealTexture = tex;
             OpenGL.BindTexture(OpenGL.GL_TEXTURE_2D, RevealTexture);
-            OpenGL.TexImage2D(OpenGL.GL_TEXTURE_2D, 0, (int)OpenGL.GL_R16F, width, height, 0, OpenGL.GL_RED, OpenGL.GL_HALF_FLOAT, null);
+            OpenGL.TexImage2D(OpenGL.GL_TEXTURE_2D, 0, (int)OpenGL.GL_R16F, width, height, 0, OpenGL.GL_RED, OpenGL.GL_FLOAT, null);
             OpenGL.TexParameteri(OpenGL.GL_TEXTURE_2D, OpenGL.GL_TEXTURE_MIN_FILTER, (int)OpenGL.GL_LINEAR);
             OpenGL.TexParameteri(OpenGL.GL_TEXTURE_2D, OpenGL.GL_TEXTURE_MAG_FILTER, (int)OpenGL.GL_LINEAR);
             OpenGL.FramebufferTexture2D(OpenGL.GL_FRAMEBUFFER, OpenGL.GL_COLOR_ATTACHMENT2, OpenGL.GL_TEXTURE_2D, RevealTexture, 0);
@@ -174,6 +175,14 @@ namespace Diablo3DEngine
             //OpenGL.RenderbufferStorage(OpenGL.GL_RENDERBUFFER, OpenGL.GL_DEPTH_COMPONENT24, width, height);
             OpenGL.RenderbufferStorageMultisample(OpenGL.GL_RENDERBUFFER, 0, OpenGL.GL_DEPTH_COMPONENT24, width, height);
             OpenGL.FramebufferRenderbuffer(OpenGL.GL_FRAMEBUFFER, OpenGL.GL_DEPTH_ATTACHMENT, OpenGL.GL_RENDERBUFFER, DepthRenderbuffer);
+
+            //OpenGL.GenTextures(1, &tex);
+            //DepthTexture = tex;
+            //OpenGL.BindTexture(OpenGL.GL_TEXTURE_2D, DepthTexture);
+            //OpenGL.TexImage2D(OpenGL.GL_TEXTURE_2D, 0, (int)OpenGL.GL_DEPTH_COMPONENT24, width, height, 0, OpenGL.GL_DEPTH_COMPONENT, OpenGL.GL_FLOAT, null);
+            //OpenGL.TexParameteri(OpenGL.GL_TEXTURE_2D, OpenGL.GL_TEXTURE_MIN_FILTER, (int)OpenGL.GL_LINEAR);
+            //OpenGL.TexParameteri(OpenGL.GL_TEXTURE_2D, OpenGL.GL_TEXTURE_MAG_FILTER, (int)OpenGL.GL_LINEAR);
+            //OpenGL.FramebufferTexture2D(OpenGL.GL_FRAMEBUFFER, OpenGL.GL_DEPTH_ATTACHMENT, OpenGL.GL_TEXTURE_2D, DepthTexture, 0);
 
             uint* buffers = stackalloc uint[] 
             {
@@ -482,8 +491,8 @@ namespace Diablo3DEngine
                 if (obj != Camera.Root && obj.Parent != Camera.Root)
                     obj.WorldTransform = obj.Transform * obj.Parent.WorldTransform;
             }
-            if (DrawMode == TDrawMode.Opaque && obj.Opaque.Value ||
-                DrawMode == TDrawMode.Transparent && !obj.Opaque.Value)
+            if (DrawMode == TDrawMode.Opaque && obj.Opaque ||
+                DrawMode == TDrawMode.Transparent && !obj.Opaque)
                 foreach (var map in obj.Maps)
                     DrawMap(obj, map);
             foreach (var child in obj.Children)
@@ -504,6 +513,17 @@ namespace Diablo3DEngine
                 bmp.RotateFlip(RotateFlipType.RotateNoneFlipY);
                 var rect = new Rectangle(0, 0, bmp.Width, bmp.Height);
                 var bmpData = bmp.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+                var buffer = new int[bmpData.Stride * bmpData.Height];
+                Marshal.Copy(bmpData.Scan0, buffer, 0, buffer.Length);
+                for (int i = 0; i < buffer.Length; i++)
+                {
+                    var pixel = Color.FromArgb(buffer[i]);
+                    if (pixel.A < 255)
+                    {
+                        texture.IsOpaque = false;
+                        break;
+                    }
+                }
                 OpenGL.TexImage2D(OpenGL.GL_TEXTURE_2D, 0, 4, bmp.Width, bmp.Height, 0,
                     OpenGL.GL_BGRA, OpenGL.GL_UNSIGNED_BYTE, bmpData.Scan0.ToPointer());
                 OpenGL.GenerateMipmap(OpenGL.GL_TEXTURE_2D);
